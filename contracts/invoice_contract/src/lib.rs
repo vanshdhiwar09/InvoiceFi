@@ -1,5 +1,6 @@
 #![no_std]
-use soroban_sdk::{contract, contractimpl, contracttype, Address, Env, String};
+use soroban_sdk::{contract, contractimpl, contracttype, token, Address, Env, String, Symbol};
+
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[contracttype]
@@ -173,8 +174,47 @@ impl InvoiceContract {
         env.storage().persistent().set(&key, &invoice);
         env.storage().persistent().extend_ttl(&key, TTL_THRESHOLD, TTL_LIMIT);
     }
+
+    pub fn invest(env: Env, investor: Address, invoice_id: u64) {
+        let key = DataKey::Invoice(invoice_id);
+        let mut invoice: Invoice = env
+            .storage()
+            .persistent()
+            .get(&key)
+            .unwrap_or_else(|| panic!("Invoice does not exist"));
+
+        investor.require_auth();
+
+        if invoice.status != InvoiceStatus::Tokenized {
+            panic!("Invalid invoice state for funding");
+        }
+
+        if investor == invoice.freelancer {
+            panic!("Freelancer cannot fund own invoice");
+        }
+
+        let token_client = token::Client::new(&env, &invoice.token_address);
+        token_client.transfer(&investor, &invoice.freelancer, &invoice.funding_amount);
+
+        invoice.investor = Some(investor.clone());
+        invoice.status = InvoiceStatus::Funded;
+
+        env.storage().persistent().set(&key, &invoice);
+        env.storage().persistent().extend_ttl(&key, TTL_THRESHOLD, TTL_LIMIT);
+
+        env.events().publish(
+            (Symbol::new(&env, "invoice_funded"), invoice_id),
+            (
+                invoice.freelancer.clone(),
+                investor,
+                invoice.funding_amount,
+                invoice.token_address.clone(),
+            ),
+        );
+    }
 }
 
 mod test;
+
 
 

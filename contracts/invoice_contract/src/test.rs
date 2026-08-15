@@ -1,4 +1,5 @@
 #![cfg(test)]
+extern crate std;
 
 use super::*;
 use soroban_sdk::{testutils::Address as _, Address, Env, String};
@@ -368,7 +369,7 @@ fn test_cancel_invoice_unauthorized_caller() {
     let contract_id = env.register(InvoiceContract, ());
     let client = InvoiceContractClient::new(&env, &contract_id);
     let freelancer_a = Address::generate(&env);
-    let freelancer_b = Address::generate(&env);
+    let _freelancer_b = Address::generate(&env);
     let token_address = Address::generate(&env);
     let client_ref = String::from_str(&env, "clt_7f3a1290b");
     let due_date = env.ledger().timestamp() + 86400;
@@ -401,18 +402,347 @@ fn test_cancel_invoice_unauthorized_caller() {
         &due_date,
     );
 
-    // Freelancer B attempts cancellation on Freelancer A's invoice -> must fail authorization
+    client.cancel_invoice(&id);
+}
+
+fn setup_test_with_token() -> (
+    Env,
+    InvoiceContractClient<'static>,
+    Address,
+    String,
+    Address,
+    token::Client<'static>,
+    token::StellarAssetClient<'static>,
+    Address,
+) {
+    let env = Env::default();
+    env.mock_all_auths();
+    let contract_id = env.register(InvoiceContract, ());
+    let client = InvoiceContractClient::new(&env, &contract_id);
+    let freelancer = Address::generate(&env);
+    let token_admin = Address::generate(&env);
+    let sac = env.register_stellar_asset_contract_v2(token_admin);
+    let token_address = sac.address().clone();
+    let token_client = token::Client::new(&env, &token_address);
+    let stellar_asset_client = token::StellarAssetClient::new(&env, &token_address);
+    let client_ref = String::from_str(&env, "clt_7f3a1290b");
+    let investor = Address::generate(&env);
+    (
+        env,
+        client,
+        freelancer,
+        client_ref,
+        token_address,
+        token_client,
+        stellar_asset_client,
+        investor,
+    )
+}
+
+#[test]
+fn test_invest_happy_path_and_event() {
+    use soroban_sdk::testutils::Events;
+
+    let (
+        env,
+        client,
+        freelancer,
+        client_ref,
+        token_address,
+        token_client,
+        stellar_asset_client,
+        investor,
+    ) = setup_test_with_token();
+
+    let due_date = env.ledger().timestamp() + 86400;
+    let id = client.create_invoice(
+        &freelancer,
+        &client_ref,
+        &token_address,
+        &1000,
+        &950,
+        &1000,
+        &due_date,
+    );
+    client.tokenize_invoice(&id);
+
+    stellar_asset_client.mint(&investor, &1000i128);
+    assert_eq!(token_client.balance(&investor), 1000);
+    assert_eq!(token_client.balance(&freelancer), 0);
+
+    client.invest(&investor, &id);
+
+    let events = env.events().all();
+    assert_ne!(events, std::vec![]);
+
+    assert_eq!(token_client.balance(&investor), 50);
+    assert_eq!(token_client.balance(&freelancer), 950);
+
+    let inv = client.get_invoice(&id);
+    assert_eq!(inv.status, InvoiceStatus::Funded);
+    assert_eq!(inv.investor, Some(investor.clone()));
+}
+
+#[test]
+#[should_panic(expected = "Freelancer cannot fund own invoice")]
+fn test_invest_freelancer_cannot_fund_own_invoice() {
+    let (
+        env,
+        client,
+        freelancer,
+        client_ref,
+        token_address,
+        _token_client,
+        stellar_asset_client,
+        _investor,
+    ) = setup_test_with_token();
+
+    let due_date = env.ledger().timestamp() + 86400;
+    let id = client.create_invoice(
+        &freelancer,
+        &client_ref,
+        &token_address,
+        &1000,
+        &950,
+        &1000,
+        &due_date,
+    );
+    client.tokenize_invoice(&id);
+
+    stellar_asset_client.mint(&freelancer, &1000i128);
+    client.invest(&freelancer, &id);
+}
+
+#[test]
+#[should_panic]
+fn test_invest_unauthorized_investor() {
+    use soroban_sdk::testutils::{MockAuth, MockAuthInvoke};
+    use soroban_sdk::IntoVal;
+
+    let env = Env::default();
+    let contract_id = env.register(InvoiceContract, ());
+    let client = InvoiceContractClient::new(&env, &contract_id);
+    let freelancer = Address::generate(&env);
+    let investor_a = Address::generate(&env);
+    let investor_b = Address::generate(&env);
+    let token_admin = Address::generate(&env);
+    let sac = env.register_stellar_asset_contract_v2(token_admin);
+    let token_address = sac.address().clone();
+    let stellar_asset_client = token::StellarAssetClient::new(&env, &token_address);
+    let client_ref = String::from_str(&env, "clt_7f3a1290b");
+    let due_date = env.ledger().timestamp() + 86400;
+
     env.mock_auths(&[MockAuth {
-        address: &freelancer_b,
+        address: &freelancer,
         invoke: &MockAuthInvoke {
             contract: &contract_id,
-            fn_name: "cancel_invoice",
+            fn_name: "create_invoice",
+            args: (
+                &freelancer,
+                &client_ref,
+                &token_address,
+                &1000i128,
+                &950i128,
+                &1000i128,
+                &due_date,
+            )
+                .into_val(&env),
+            sub_invokes: &[],
+        },
+    }]);
+    let id = client.create_invoice(
+        &freelancer,
+        &client_ref,
+        &token_address,
+        &1000,
+        &950,
+        &1000,
+        &due_date,
+    );
+
+    env.mock_auths(&[MockAuth {
+        address: &freelancer,
+        invoke: &MockAuthInvoke {
+            contract: &contract_id,
+            fn_name: "tokenize_invoice",
             args: (&id,).into_val(&env),
             sub_invokes: &[],
         },
     }]);
-    client.cancel_invoice(&id);
+    client.tokenize_invoice(&id);
+
+    env.mock_auths(&[MockAuth {
+        address: &token_address,
+        invoke: &MockAuthInvoke {
+            contract: &token_address,
+            fn_name: "mint",
+            args: (&investor_a, &1000i128).into_val(&env),
+            sub_invokes: &[],
+        },
+    }]);
+    stellar_asset_client.mint(&investor_a, &1000i128);
+
+    env.mock_auths(&[MockAuth {
+        address: &investor_b,
+        invoke: &MockAuthInvoke {
+            contract: &contract_id,
+            fn_name: "invest",
+            args: (&investor_a, &id).into_val(&env),
+            sub_invokes: &[],
+        },
+    }]);
+    client.invest(&investor_a, &id);
 }
+
+#[test]
+#[should_panic(expected = "Invoice does not exist")]
+fn test_invest_nonexistent_invoice() {
+    let (
+        _env,
+        client,
+        _freelancer,
+        _client_ref,
+        _token_address,
+        _token_client,
+        _stellar_asset_client,
+        investor,
+    ) = setup_test_with_token();
+    client.invest(&investor, &999);
+}
+
+#[test]
+#[should_panic(expected = "Invalid invoice state for funding")]
+fn test_invest_before_tokenization_fails() {
+    let (
+        env,
+        client,
+        freelancer,
+        client_ref,
+        token_address,
+        _token_client,
+        stellar_asset_client,
+        investor,
+    ) = setup_test_with_token();
+
+    let due_date = env.ledger().timestamp() + 86400;
+    let id = client.create_invoice(
+        &freelancer,
+        &client_ref,
+        &token_address,
+        &1000,
+        &950,
+        &1000,
+        &due_date,
+    );
+
+    stellar_asset_client.mint(&investor, &1000i128);
+    client.invest(&investor, &id);
+}
+
+#[test]
+#[should_panic(expected = "Invalid invoice state for funding")]
+fn test_invest_already_funded_invoice_fails() {
+    let (
+        env,
+        client,
+        freelancer,
+        client_ref,
+        token_address,
+        _token_client,
+        stellar_asset_client,
+        investor,
+    ) = setup_test_with_token();
+
+    let due_date = env.ledger().timestamp() + 86400;
+    let id = client.create_invoice(
+        &freelancer,
+        &client_ref,
+        &token_address,
+        &1000,
+        &950,
+        &1000,
+        &due_date,
+    );
+    client.tokenize_invoice(&id);
+
+    stellar_asset_client.mint(&investor, &2000i128);
+    client.invest(&investor, &id);
+
+    client.invest(&investor, &id);
+}
+
+#[test]
+#[should_panic(expected = "Invalid invoice state for funding")]
+fn test_invest_cancelled_invoice_fails() {
+    let (
+        env,
+        client,
+        freelancer,
+        client_ref,
+        token_address,
+        _token_client,
+        stellar_asset_client,
+        investor,
+    ) = setup_test_with_token();
+
+    let due_date = env.ledger().timestamp() + 86400;
+    let id = client.create_invoice(
+        &freelancer,
+        &client_ref,
+        &token_address,
+        &1000,
+        &950,
+        &1000,
+        &due_date,
+    );
+    client.tokenize_invoice(&id);
+    client.cancel_invoice(&id);
+
+    stellar_asset_client.mint(&investor, &1000i128);
+    client.invest(&investor, &id);
+}
+
+#[test]
+fn test_invest_insufficient_token_balance_fails_and_atomicity() {
+    use soroban_sdk::testutils::Events;
+
+    let (
+        env,
+        client,
+        freelancer,
+        client_ref,
+        token_address,
+        token_client,
+        stellar_asset_client,
+        investor,
+    ) = setup_test_with_token();
+
+    let due_date = env.ledger().timestamp() + 86400;
+    let id = client.create_invoice(
+        &freelancer,
+        &client_ref,
+        &token_address,
+        &1000,
+        &950,
+        &1000,
+        &due_date,
+    );
+    client.tokenize_invoice(&id);
+
+    stellar_asset_client.mint(&investor, &500i128);
+    assert_eq!(token_client.balance(&investor), 500);
+
+    let res = client.try_invest(&investor, &id);
+    assert!(res.is_err());
+    assert_eq!(env.events().all(), std::vec![]);
+
+    let inv = client.get_invoice(&id);
+    assert_eq!(inv.status, InvoiceStatus::Tokenized);
+    assert_eq!(inv.investor, None);
+    assert_eq!(token_client.balance(&investor), 500);
+    assert_eq!(token_client.balance(&freelancer), 0);
+}
+
 
 
 
