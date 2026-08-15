@@ -1087,6 +1087,482 @@ fn test_repay_uses_invoice_token_address() {
     assert_eq!(client.get_invoice(&id2).status, InvoiceStatus::Funded);
 }
 
+#[test]
+fn test_claim_returns_happy_path() {
+    let (
+        env,
+        client,
+        freelancer,
+        client_ref,
+        token_address,
+        token_client,
+        stellar_asset_client,
+        investor,
+    ) = setup_test_with_token();
+
+    let due_date = env.ledger().timestamp() + 86400;
+    let id = client.create_invoice(
+        &freelancer,
+        &client_ref,
+        &token_address,
+        &1000,
+        &950,
+        &1000,
+        &due_date,
+    );
+    client.tokenize_invoice(&id);
+
+    stellar_asset_client.mint(&investor, &1000i128);
+    client.invest(&investor, &id);
+
+    let repayer = Address::generate(&env);
+    stellar_asset_client.mint(&repayer, &1000i128);
+    client.repay(&repayer, &id);
+
+    assert_eq!(token_client.balance(&investor), 50);
+    assert_eq!(token_client.balance(&client.address), 1000);
+
+    client.claim_returns(&investor, &id);
+
+    assert_eq!(token_client.balance(&investor), 1050);
+    assert_eq!(token_client.balance(&client.address), 0);
+
+    let inv = client.get_invoice(&id);
+    assert_eq!(inv.status, InvoiceStatus::Closed);
+}
+
+#[test]
+#[should_panic(expected = "Caller is not the recorded investor")]
+fn test_claim_returns_wrong_investor_fails() {
+    let (
+        env,
+        client,
+        freelancer,
+        client_ref,
+        token_address,
+        _token_client,
+        stellar_asset_client,
+        investor_a,
+    ) = setup_test_with_token();
+
+    let due_date = env.ledger().timestamp() + 86400;
+    let id = client.create_invoice(
+        &freelancer,
+        &client_ref,
+        &token_address,
+        &1000,
+        &950,
+        &1000,
+        &due_date,
+    );
+    client.tokenize_invoice(&id);
+
+    stellar_asset_client.mint(&investor_a, &1000i128);
+    client.invest(&investor_a, &id);
+
+    let repayer = Address::generate(&env);
+    stellar_asset_client.mint(&repayer, &1000i128);
+    client.repay(&repayer, &id);
+
+    let investor_b = Address::generate(&env);
+    client.claim_returns(&investor_b, &id);
+}
+
+#[test]
+#[should_panic]
+fn test_claim_returns_unauthorized_investor() {
+    use soroban_sdk::testutils::{MockAuth, MockAuthInvoke};
+    use soroban_sdk::IntoVal;
+
+    let (
+        env,
+        client,
+        freelancer,
+        client_ref,
+        token_address,
+        _token_client,
+        stellar_asset_client,
+        investor_a,
+    ) = setup_test_with_token();
+
+    let due_date = env.ledger().timestamp() + 86400;
+    let id = client.create_invoice(
+        &freelancer,
+        &client_ref,
+        &token_address,
+        &1000,
+        &950,
+        &1000,
+        &due_date,
+    );
+    client.tokenize_invoice(&id);
+
+    stellar_asset_client.mint(&investor_a, &1000i128);
+    client.invest(&investor_a, &id);
+
+    let repayer = Address::generate(&env);
+    stellar_asset_client.mint(&repayer, &1000i128);
+    client.repay(&repayer, &id);
+
+    let investor_b = Address::generate(&env);
+
+    env.mock_auths(&[MockAuth {
+        address: &investor_b,
+        invoke: &MockAuthInvoke {
+            contract: &client.address,
+            fn_name: "claim_returns",
+            args: (&investor_a, &id).into_val(&env),
+            sub_invokes: &[],
+        },
+    }]);
+
+    client.claim_returns(&investor_a, &id);
+}
+
+#[test]
+#[should_panic(expected = "Invoice does not exist")]
+fn test_claim_returns_nonexistent_invoice() {
+    let (
+        _env,
+        client,
+        _freelancer,
+        _client_ref,
+        _token_address,
+        _token_client,
+        _stellar_asset_client,
+        investor,
+    ) = setup_test_with_token();
+
+    client.claim_returns(&investor, &999);
+}
+
+#[test]
+#[should_panic(expected = "Invalid invoice state for claim")]
+fn test_claim_returns_created_invoice_fails() {
+    let (
+        env,
+        client,
+        freelancer,
+        client_ref,
+        token_address,
+        _token_client,
+        _stellar_asset_client,
+        investor,
+    ) = setup_test_with_token();
+
+    let due_date = env.ledger().timestamp() + 86400;
+    let id = client.create_invoice(
+        &freelancer,
+        &client_ref,
+        &token_address,
+        &1000,
+        &950,
+        &1000,
+        &due_date,
+    );
+
+    client.claim_returns(&investor, &id);
+}
+
+#[test]
+#[should_panic(expected = "Invalid invoice state for claim")]
+fn test_claim_returns_tokenized_invoice_fails() {
+    let (
+        env,
+        client,
+        freelancer,
+        client_ref,
+        token_address,
+        _token_client,
+        _stellar_asset_client,
+        investor,
+    ) = setup_test_with_token();
+
+    let due_date = env.ledger().timestamp() + 86400;
+    let id = client.create_invoice(
+        &freelancer,
+        &client_ref,
+        &token_address,
+        &1000,
+        &950,
+        &1000,
+        &due_date,
+    );
+    client.tokenize_invoice(&id);
+
+    client.claim_returns(&investor, &id);
+}
+
+#[test]
+#[should_panic(expected = "Invalid invoice state for claim")]
+fn test_claim_returns_funded_invoice_fails() {
+    let (
+        env,
+        client,
+        freelancer,
+        client_ref,
+        token_address,
+        _token_client,
+        stellar_asset_client,
+        investor,
+    ) = setup_test_with_token();
+
+    let due_date = env.ledger().timestamp() + 86400;
+    let id = client.create_invoice(
+        &freelancer,
+        &client_ref,
+        &token_address,
+        &1000,
+        &950,
+        &1000,
+        &due_date,
+    );
+    client.tokenize_invoice(&id);
+
+    stellar_asset_client.mint(&investor, &1000i128);
+    client.invest(&investor, &id);
+
+    client.claim_returns(&investor, &id);
+}
+
+#[test]
+#[should_panic(expected = "Invalid invoice state for claim")]
+fn test_claim_returns_cancelled_invoice_fails() {
+    let (
+        env,
+        client,
+        freelancer,
+        client_ref,
+        token_address,
+        _token_client,
+        _stellar_asset_client,
+        investor,
+    ) = setup_test_with_token();
+
+    let due_date = env.ledger().timestamp() + 86400;
+    let id = client.create_invoice(
+        &freelancer,
+        &client_ref,
+        &token_address,
+        &1000,
+        &950,
+        &1000,
+        &due_date,
+    );
+    client.tokenize_invoice(&id);
+    client.cancel_invoice(&id);
+
+    client.claim_returns(&investor, &id);
+}
+
+#[test]
+#[should_panic(expected = "Invalid invoice state for claim")]
+fn test_claim_returns_double_claim_closed_fails() {
+    let (
+        env,
+        client,
+        freelancer,
+        client_ref,
+        token_address,
+        _token_client,
+        stellar_asset_client,
+        investor,
+    ) = setup_test_with_token();
+
+    let due_date = env.ledger().timestamp() + 86400;
+    let id = client.create_invoice(
+        &freelancer,
+        &client_ref,
+        &token_address,
+        &1000,
+        &950,
+        &1000,
+        &due_date,
+    );
+    client.tokenize_invoice(&id);
+
+    stellar_asset_client.mint(&investor, &1000i128);
+    client.invest(&investor, &id);
+
+    let repayer = Address::generate(&env);
+    stellar_asset_client.mint(&repayer, &1000i128);
+    client.repay(&repayer, &id);
+
+    client.claim_returns(&investor, &id);
+    client.claim_returns(&investor, &id);
+}
+
+#[test]
+fn test_claim_returns_insufficient_contract_escrow_and_atomicity() {
+    let (
+        env,
+        client,
+        freelancer,
+        client_ref,
+        token_address,
+        token_client,
+        stellar_asset_client,
+        investor,
+    ) = setup_test_with_token();
+
+    let due_date = env.ledger().timestamp() + 86400;
+    let id = client.create_invoice(
+        &freelancer,
+        &client_ref,
+        &token_address,
+        &1000,
+        &950,
+        &1000,
+        &due_date,
+    );
+    client.tokenize_invoice(&id);
+
+    stellar_asset_client.mint(&investor, &1000i128);
+    client.invest(&investor, &id);
+
+    // Manually transition invoice to Repaid without funding contract escrow
+    env.as_contract(&client.address, || {
+        let key = DataKey::Invoice(id);
+        let mut inv: Invoice = env.storage().persistent().get(&key).unwrap();
+        inv.status = InvoiceStatus::Repaid;
+        env.storage().persistent().set(&key, &inv);
+    });
+
+    // Contract address has 0 tokens (insufficient for 1000 repayment_amount)
+    assert_eq!(token_client.balance(&client.address), 0);
+
+    let res = client.try_claim_returns(&investor, &id);
+    assert!(res.is_err());
+
+    // ATOMICITY ASSERTIONS
+    let inv = client.get_invoice(&id);
+    assert_eq!(inv.status, InvoiceStatus::Repaid);
+    assert_eq!(inv.investor, Some(investor.clone()));
+    assert_eq!(token_client.balance(&investor), 50);
+}
+
+#[test]
+fn test_claim_returns_shared_contract_balance_multi_invoice() {
+    let (
+        env,
+        client,
+        freelancer,
+        client_ref,
+        token_address,
+        token_client,
+        stellar_asset_client,
+        investor_a,
+    ) = setup_test_with_token();
+
+    let investor_b = Address::generate(&env);
+    let due_date = env.ledger().timestamp() + 86400;
+
+    let id_a = client.create_invoice(
+        &freelancer,
+        &client_ref,
+        &token_address,
+        &1000,
+        &950,
+        &1000,
+        &due_date,
+    );
+    let id_b = client.create_invoice(
+        &freelancer,
+        &client_ref,
+        &token_address,
+        &2000,
+        &1800,
+        &2000,
+        &due_date,
+    );
+
+    client.tokenize_invoice(&id_a);
+    client.tokenize_invoice(&id_b);
+
+    stellar_asset_client.mint(&investor_a, &1000i128);
+    stellar_asset_client.mint(&investor_b, &2000i128);
+
+    client.invest(&investor_a, &id_a);
+    client.invest(&investor_b, &id_b);
+
+    let repayer = Address::generate(&env);
+    stellar_asset_client.mint(&repayer, &3000i128);
+
+    client.repay(&repayer, &id_a);
+    client.repay(&repayer, &id_b);
+
+    assert_eq!(token_client.balance(&client.address), 3000);
+
+    client.claim_returns(&investor_a, &id_a);
+
+    assert_eq!(token_client.balance(&investor_a), 1050);
+    assert_eq!(token_client.balance(&client.address), 2000);
+
+    assert_eq!(client.get_invoice(&id_a).status, InvoiceStatus::Closed);
+    assert_eq!(client.get_invoice(&id_b).status, InvoiceStatus::Repaid);
+}
+
+#[test]
+fn test_extend_invoice_ttl_success() {
+    let (
+        env,
+        client,
+        freelancer,
+        client_ref,
+        token_address,
+        _token_client,
+        _stellar_asset_client,
+        _investor,
+    ) = setup_test_with_token();
+
+    let due_date = env.ledger().timestamp() + 86400;
+    let id = client.create_invoice(
+        &freelancer,
+        &client_ref,
+        &token_address,
+        &1000,
+        &950,
+        &1000,
+        &due_date,
+    );
+
+    let inv_before = client.get_invoice(&id);
+
+    client.extend_invoice_ttl(&id);
+
+    let inv_after = client.get_invoice(&id);
+
+    assert_eq!(inv_before.id, inv_after.id);
+    assert_eq!(inv_before.freelancer, inv_after.freelancer);
+    assert_eq!(inv_before.client_ref, inv_after.client_ref);
+    assert_eq!(inv_before.token_address, inv_after.token_address);
+    assert_eq!(inv_before.face_value, inv_after.face_value);
+    assert_eq!(inv_before.funding_amount, inv_after.funding_amount);
+    assert_eq!(inv_before.repayment_amount, inv_after.repayment_amount);
+    assert_eq!(inv_before.due_date, inv_after.due_date);
+    assert_eq!(inv_before.status, inv_after.status);
+    assert_eq!(inv_before.verification, inv_after.verification);
+    assert_eq!(inv_before.investor, inv_after.investor);
+}
+
+#[test]
+#[should_panic(expected = "Invoice does not exist")]
+fn test_extend_invoice_ttl_nonexistent_fails() {
+    let (
+        _env,
+        client,
+        _freelancer,
+        _client_ref,
+        _token_address,
+        _token_client,
+        _stellar_asset_client,
+        _investor,
+    ) = setup_test_with_token();
+
+    client.extend_invoice_ttl(&999);
+}
+
+
 
 
 

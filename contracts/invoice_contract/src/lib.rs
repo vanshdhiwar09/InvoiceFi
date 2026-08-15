@@ -239,9 +239,55 @@ impl InvoiceContract {
         env.storage().persistent().set(&key, &invoice);
         env.storage().persistent().extend_ttl(&key, TTL_THRESHOLD, TTL_LIMIT);
     }
+
+    pub fn claim_returns(env: Env, investor: Address, invoice_id: u64) {
+        let key = DataKey::Invoice(invoice_id);
+        let mut invoice: Invoice = env
+            .storage()
+            .persistent()
+            .get(&key)
+            .unwrap_or_else(|| panic!("Invoice does not exist"));
+
+        if invoice.status != InvoiceStatus::Repaid {
+            panic!("Invalid invoice state for claim");
+        }
+
+        let recorded_investor = invoice
+            .investor
+            .clone()
+            .unwrap_or_else(|| panic!("Invoice has no recorded investor"));
+
+        if investor != recorded_investor {
+            panic!("Caller is not the recorded investor");
+        }
+
+        recorded_investor.require_auth();
+
+        let token_client = token::Client::new(&env, &invoice.token_address);
+        token_client.transfer(
+            &env.current_contract_address(),
+            &recorded_investor,
+            &invoice.repayment_amount,
+        );
+
+        invoice.status = InvoiceStatus::Closed;
+
+        env.storage().persistent().set(&key, &invoice);
+        env.storage().persistent().extend_ttl(&key, TTL_THRESHOLD, TTL_LIMIT);
+    }
+
+    pub fn extend_invoice_ttl(env: Env, invoice_id: u64) {
+        let key = DataKey::Invoice(invoice_id);
+        if env.storage().persistent().has(&key) {
+            env.storage().persistent().extend_ttl(&key, TTL_THRESHOLD, TTL_LIMIT);
+        } else {
+            panic!("Invoice does not exist");
+        }
+    }
 }
 
 mod test;
+
 
 
 
