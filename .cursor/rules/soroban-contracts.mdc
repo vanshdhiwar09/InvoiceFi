@@ -1,0 +1,51 @@
+---
+description: Soroban smart contract rules for InvoiceFi invoice registry and state machine
+globs: contracts/**/*.rs,contracts/**/Cargo.toml
+alwaysApply: false
+---
+
+# Soroban Contracts
+
+## Tooling & APIs
+
+- Use current Soroban/Rust APIs and compile target `wasm32v1-none`
+- Do not use outdated Soroban APIs or old WASM targets without verification
+- Use `soroban_sdk::token::Client` for stablecoin transfers
+
+## Approved State Machine
+
+```
+Created → Tokenized → Funded → Repaid → Closed
+```
+
+Cancellation allowed **only** from `Created` or `Tokenized` → `Cancelled`. No cancellation after funding.
+
+| Function | Caller | From → To |
+|---|---|---|
+| `create_invoice()` | Freelancer | → Created |
+| `tokenize_invoice()` | Freelancer | Created → Tokenized (SelfAttested) |
+| `cancel_invoice()` | Freelancer | Created/Tokenized → Cancelled |
+| `invest()` | Investor | Tokenized → Funded |
+| `repay()` | Simulated Repayer | Funded → Repaid |
+| `claim_returns()` | Recorded Investor | Repaid → Closed |
+| `extend_invoice_ttl()` | Anyone | TTL bump only (no business state change) |
+
+## Storage & TTL
+
+- **Instance storage:** contract config and `InvoiceCounter`
+- **Persistent storage:** per-invoice records via `DataKey::Invoice(u64)`
+- Bump persistent TTL on every invoice read/write; bump instance TTL on create
+- `extend_invoice_ttl` is maintenance-only — must not alter status, amounts, dates, or ownership
+- Do not confuse business `due_date` with Soroban storage TTL
+
+## Security & Invariants
+
+- Preserve authorization boundaries (`Address::require_auth()`)
+- Token transfers are security-sensitive; state changes and token ops must be atomic
+- Enforce financial invariants: `face_value > 0`, `funding_amount > 0`, `funding_amount < face_value`, `repayment_amount == face_value`, future `due_date` capped at 1 year
+- Every function touching `invoice_id` must validate existence or panic `"Invoice does not exist"`
+
+## Events & Tests
+
+- Emit `invoice_funded` events compatible with backend ingestion
+- Every public state-changing function needs tests covering happy path, invalid transitions, and authorization failures

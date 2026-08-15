@@ -1,0 +1,35 @@
+---
+description: Backend and Supabase rules for off-chain metadata and event ingestion
+globs: backend/**/*.js,backend/**/*.ts,backend/**/package.json
+alwaysApply: false
+---
+
+# Backend
+
+## Data Boundaries
+
+- Supabase/PostgreSQL stores private/off-chain metadata (client email, name, documents, analytics)
+- Never store PII on-chain
+- Soroban contract state is authoritative for financial/settlement state
+- Backend must **not** become a competing source of truth for on-chain lifecycle state
+
+## Event Ingestion
+
+- Monitor Soroban RPC events; ingestion must be **idempotent** (deduplicate by event identity)
+- Maintain durable ledger checkpoint in `sync_state`
+- Retry states: `DISCOVERED` → `PROCESSING` → `PROCESSED` | `FAILED` | `FAILED_PERMANENT`
+- `FAILED_PERMANENT` = terminal processing failure, not successful business processing
+- Preserve failed event/error information for operator inspection
+- Advance checkpoint only when events are `PROCESSED` or terminal `FAILED_PERMANENT`
+- Do not silently skip synchronization gaps
+
+## Notice of Assignment
+
+- Trigger NoA processing from **confirmed on-chain** `invoice_funded` events
+- Look up private client info via `client_ref` → off-chain invoice record
+- Log settlement instructions with memo format `INV-{id}` (simulated notification is fine for Level 4)
+
+## Prohibitions
+
+- Never invent blockchain events or transaction confirmations
+- Configure token/contract addresses via environment variables — never hard-code or fabricate deployment info

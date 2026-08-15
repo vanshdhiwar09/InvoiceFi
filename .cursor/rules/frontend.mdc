@@ -1,0 +1,35 @@
+---
+description: Frontend UI, wallet integration, and design system rules for InvoiceFi
+globs: frontend/**/*.js,frontend/**/*.jsx,frontend/**/*.ts,frontend/**/*.tsx,frontend/**/*.css
+alwaysApply: false
+---
+
+# Frontend
+
+## Design System
+
+Follow `DESIGN-stripe.md`: indigo primary (`#533afd`), ink body text (`#0d253d`), pill buttons, gradient-mesh heroes, thin (300) display type with negative tracking, Inter as Sohne substitute.
+
+- Money and numeric values: use tabular figures (`font-feature-settings: "tnum"`)
+- Cards on near-white surfaces; dashboard areas may use dark navy (`#1c1e54`) shell
+- Preserve responsive/mobile behavior (breakpoints at 768px / 1024px)
+
+## Wallet & Blockchain
+
+- Use **Stellar Wallet Kit** (`@stellar/wallet-kit`) — support Freighter, Albedo, xBull minimum
+- Wrap wallet flows to normalize popup/redirect/deep-link differences per provider
+- Clearly distinguish: disconnected, connecting, connected, signing, rejected, error states
+- Use Soroban RPC (`rpc.Server`) for contract calls — not Horizon for contract interactions
+- Soroban/Testnet state is authoritative — do not fake financial or blockchain state in production UI
+
+## UX Requirements
+
+- Show loading, success, rejection, and error states for all on-chain actions
+- Test wallet rejection and insufficient-balance flows per supported provider
+- Keep private metadata (client details, documents) separate from on-chain display
+
+## Security & Config
+
+- Do not expose secrets in client-side code
+- Use environment variables for public config (e.g. `NEXT_PUBLIC_TOKEN_CONTRACT_ADDRESS`)
+- Never hard-code private keys, secrets, or credentials

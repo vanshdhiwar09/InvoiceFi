@@ -1,0 +1,38 @@
+---
+description: InvoiceFi core project constraints, source-of-truth priority, and Level 4 scope
+alwaysApply: true
+---
+
+# InvoiceFi Core
+
+## Source-of-Truth Priority
+
+1. `InvoiceFi_Idea_Submission.md` — product and technical architecture
+2. `InvoiceFi_Level_4-7_Execution_Plan.md` — RiseIn Level 4–7 requirements
+3. `implementation_plan.md` — approved Level 4 implementation spec
+4. `DESIGN-stripe.md` — UI/UX and visual design
+5. `Stellar_Reference_Sources.md` — Stellar/Soroban reference material
+
+If sources conflict, **do not silently choose one** — flag the conflict before implementation.
+
+## Current Scope: Level 4 Only
+
+InvoiceFi is implementing **Level 4**. Do not implement Level 5, 6, or 7 features unless explicitly requested.
+
+**Included:** wallet connection, invoice creation, self-attestation, registry tokenization, single-investor funding, simulated repayment, investor claim, invoice closure, cancellation before funding, basic Notice of Assignment flow, Testnet deployment, off-chain private metadata, analytics/documentation requirements.
+
+**Excluded (future levels):** marketplace browse/filter, partial/fractional investment, reputation scores, SEP-24/31 anchors, secondary market, mainnet deployment, multi-currency.
+
+Preserve future compatibility without implementing future functionality.
+
+## Architecture Principles
+
+- On-chain financial state is **authoritative**; private client information stays **off-chain**
+- Never put PII on-chain
+- Never silently change approved architecture — flag deviations before making them
+- Never invent contract IDs, token addresses, wallet addresses, or deployment information
+- Never deploy to Stellar Testnet/Mainnet without explicit user approval
+- Never claim a feature is implemented unless it actually exists
+- Prefer current official Stellar documentation for Soroban/Stellar behavior
+- Keep changes small and reviewable; run relevant tests after implementation
+- Preserve meaningful Git history
