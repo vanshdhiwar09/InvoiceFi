@@ -212,9 +212,37 @@ impl InvoiceContract {
             ),
         );
     }
+
+    pub fn repay(env: Env, repayer: Address, invoice_id: u64) {
+        let key = DataKey::Invoice(invoice_id);
+        let mut invoice: Invoice = env
+            .storage()
+            .persistent()
+            .get(&key)
+            .unwrap_or_else(|| panic!("Invoice does not exist"));
+
+        repayer.require_auth();
+
+        if invoice.status != InvoiceStatus::Funded {
+            panic!("Invalid invoice state for repayment");
+        }
+
+        let token_client = token::Client::new(&env, &invoice.token_address);
+        token_client.transfer(
+            &repayer,
+            &env.current_contract_address(),
+            &invoice.repayment_amount,
+        );
+
+        invoice.status = InvoiceStatus::Repaid;
+
+        env.storage().persistent().set(&key, &invoice);
+        env.storage().persistent().extend_ttl(&key, TTL_THRESHOLD, TTL_LIMIT);
+    }
 }
 
 mod test;
+
 
 
 

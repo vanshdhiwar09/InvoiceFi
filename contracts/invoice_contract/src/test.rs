@@ -743,6 +743,351 @@ fn test_invest_insufficient_token_balance_fails_and_atomicity() {
     assert_eq!(token_client.balance(&freelancer), 0);
 }
 
+#[test]
+fn test_repay_happy_path() {
+    let (
+        env,
+        client,
+        freelancer,
+        client_ref,
+        token_address,
+        token_client,
+        stellar_asset_client,
+        investor,
+    ) = setup_test_with_token();
+
+    let due_date = env.ledger().timestamp() + 86400;
+    let id = client.create_invoice(
+        &freelancer,
+        &client_ref,
+        &token_address,
+        &1000,
+        &950,
+        &1000,
+        &due_date,
+    );
+    client.tokenize_invoice(&id);
+
+    stellar_asset_client.mint(&investor, &1000i128);
+    client.invest(&investor, &id);
+
+    let repayer = Address::generate(&env);
+    stellar_asset_client.mint(&repayer, &1000i128);
+    assert_eq!(token_client.balance(&repayer), 1000);
+    assert_eq!(token_client.balance(&client.address), 0);
+
+    client.repay(&repayer, &id);
+
+    assert_eq!(token_client.balance(&repayer), 0);
+    assert_eq!(token_client.balance(&client.address), 1000);
+
+    let inv = client.get_invoice(&id);
+    assert_eq!(inv.status, InvoiceStatus::Repaid);
+}
+
+#[test]
+#[should_panic]
+fn test_repay_unauthorized_repayer() {
+    use soroban_sdk::testutils::{MockAuth, MockAuthInvoke};
+    use soroban_sdk::IntoVal;
+
+    let (
+        env,
+        client,
+        freelancer,
+        client_ref,
+        token_address,
+        _token_client,
+        stellar_asset_client,
+        investor,
+    ) = setup_test_with_token();
+
+    let due_date = env.ledger().timestamp() + 86400;
+    let id = client.create_invoice(
+        &freelancer,
+        &client_ref,
+        &token_address,
+        &1000,
+        &950,
+        &1000,
+        &due_date,
+    );
+    client.tokenize_invoice(&id);
+
+    stellar_asset_client.mint(&investor, &1000i128);
+    client.invest(&investor, &id);
+
+    let repayer_a = Address::generate(&env);
+    let repayer_b = Address::generate(&env);
+    stellar_asset_client.mint(&repayer_a, &1000i128);
+
+    // Disable mock_all_auths to test explicit auth check
+    env.mock_auths(&[MockAuth {
+        address: &repayer_b,
+        invoke: &MockAuthInvoke {
+            contract: &client.address,
+            fn_name: "repay",
+            args: (&repayer_a, &id).into_val(&env),
+            sub_invokes: &[],
+        },
+    }]);
+
+    client.repay(&repayer_a, &id);
+}
+
+#[test]
+#[should_panic(expected = "Invoice does not exist")]
+fn test_repay_nonexistent_invoice() {
+    let (
+        _env,
+        client,
+        _freelancer,
+        _client_ref,
+        _token_address,
+        _token_client,
+        _stellar_asset_client,
+        investor,
+    ) = setup_test_with_token();
+
+    client.repay(&investor, &999);
+}
+
+#[test]
+#[should_panic(expected = "Invalid invoice state for repayment")]
+fn test_repay_created_invoice_fails() {
+    let (
+        env,
+        client,
+        freelancer,
+        client_ref,
+        token_address,
+        _token_client,
+        stellar_asset_client,
+        repayer,
+    ) = setup_test_with_token();
+
+    let due_date = env.ledger().timestamp() + 86400;
+    let id = client.create_invoice(
+        &freelancer,
+        &client_ref,
+        &token_address,
+        &1000,
+        &950,
+        &1000,
+        &due_date,
+    );
+
+    stellar_asset_client.mint(&repayer, &1000i128);
+    client.repay(&repayer, &id);
+}
+
+#[test]
+#[should_panic(expected = "Invalid invoice state for repayment")]
+fn test_repay_tokenized_invoice_fails() {
+    let (
+        env,
+        client,
+        freelancer,
+        client_ref,
+        token_address,
+        _token_client,
+        stellar_asset_client,
+        repayer,
+    ) = setup_test_with_token();
+
+    let due_date = env.ledger().timestamp() + 86400;
+    let id = client.create_invoice(
+        &freelancer,
+        &client_ref,
+        &token_address,
+        &1000,
+        &950,
+        &1000,
+        &due_date,
+    );
+    client.tokenize_invoice(&id);
+
+    stellar_asset_client.mint(&repayer, &1000i128);
+    client.repay(&repayer, &id);
+}
+
+#[test]
+#[should_panic(expected = "Invalid invoice state for repayment")]
+fn test_repay_cancelled_invoice_fails() {
+    let (
+        env,
+        client,
+        freelancer,
+        client_ref,
+        token_address,
+        _token_client,
+        stellar_asset_client,
+        repayer,
+    ) = setup_test_with_token();
+
+    let due_date = env.ledger().timestamp() + 86400;
+    let id = client.create_invoice(
+        &freelancer,
+        &client_ref,
+        &token_address,
+        &1000,
+        &950,
+        &1000,
+        &due_date,
+    );
+    client.tokenize_invoice(&id);
+    client.cancel_invoice(&id);
+
+    stellar_asset_client.mint(&repayer, &1000i128);
+    client.repay(&repayer, &id);
+}
+
+#[test]
+#[should_panic(expected = "Invalid invoice state for repayment")]
+fn test_repay_already_repaid_invoice_fails() {
+    let (
+        env,
+        client,
+        freelancer,
+        client_ref,
+        token_address,
+        _token_client,
+        stellar_asset_client,
+        investor,
+    ) = setup_test_with_token();
+
+    let due_date = env.ledger().timestamp() + 86400;
+    let id = client.create_invoice(
+        &freelancer,
+        &client_ref,
+        &token_address,
+        &1000,
+        &950,
+        &1000,
+        &due_date,
+    );
+    client.tokenize_invoice(&id);
+
+    stellar_asset_client.mint(&investor, &1000i128);
+    client.invest(&investor, &id);
+
+    let repayer = Address::generate(&env);
+    stellar_asset_client.mint(&repayer, &2000i128);
+    client.repay(&repayer, &id);
+
+    // Second repayment attempt -> must panic
+    client.repay(&repayer, &id);
+}
+
+#[test]
+fn test_repay_insufficient_balance_and_atomicity() {
+    let (
+        env,
+        client,
+        freelancer,
+        client_ref,
+        token_address,
+        token_client,
+        stellar_asset_client,
+        investor,
+    ) = setup_test_with_token();
+
+    let due_date = env.ledger().timestamp() + 86400;
+    let id = client.create_invoice(
+        &freelancer,
+        &client_ref,
+        &token_address,
+        &1000,
+        &950,
+        &1000,
+        &due_date,
+    );
+    client.tokenize_invoice(&id);
+
+    stellar_asset_client.mint(&investor, &1000i128);
+    client.invest(&investor, &id);
+
+    let repayer = Address::generate(&env);
+    // Mint ONLY $500 to repayer (repayment_amount is $1000)
+    stellar_asset_client.mint(&repayer, &500i128);
+
+    let res = client.try_repay(&repayer, &id);
+    assert!(res.is_err());
+
+    // ATOMICITY ASSERTIONS
+    let inv = client.get_invoice(&id);
+    assert_eq!(inv.status, InvoiceStatus::Funded);
+    assert_eq!(token_client.balance(&repayer), 500);
+    assert_eq!(token_client.balance(&client.address), 0);
+}
+
+#[test]
+fn test_repay_uses_invoice_token_address() {
+    let (
+        env,
+        client,
+        freelancer,
+        client_ref,
+        token_address_1,
+        token_client_1,
+        stellar_asset_client_1,
+        investor,
+    ) = setup_test_with_token();
+
+    // Create second token
+    let token_admin_2 = Address::generate(&env);
+    let sac_2 = env.register_stellar_asset_contract_v2(token_admin_2);
+    let token_address_2 = sac_2.address().clone();
+    let token_client_2 = token::Client::new(&env, &token_address_2);
+    let stellar_asset_client_2 = token::StellarAssetClient::new(&env, &token_address_2);
+
+    let due_date = env.ledger().timestamp() + 86400;
+
+    // Invoice 1 uses Token 1
+    let id1 = client.create_invoice(
+        &freelancer,
+        &client_ref,
+        &token_address_1,
+        &1000,
+        &950,
+        &1000,
+        &due_date,
+    );
+
+    // Invoice 2 uses Token 2
+    let id2 = client.create_invoice(
+        &freelancer,
+        &client_ref,
+        &token_address_2,
+        &1000,
+        &950,
+        &1000,
+        &due_date,
+    );
+
+    client.tokenize_invoice(&id1);
+    client.tokenize_invoice(&id2);
+
+    stellar_asset_client_1.mint(&investor, &1000i128);
+    stellar_asset_client_2.mint(&investor, &1000i128);
+
+    client.invest(&investor, &id1);
+    client.invest(&investor, &id2);
+
+    let repayer = Address::generate(&env);
+    stellar_asset_client_1.mint(&repayer, &1000i128);
+    stellar_asset_client_2.mint(&repayer, &1000i128);
+
+    // Repay Invoice 1 -> must transfer Token 1 to contract address
+    client.repay(&repayer, &id1);
+
+    assert_eq!(token_client_1.balance(&client.address), 1000);
+    assert_eq!(token_client_2.balance(&client.address), 0);
+    assert_eq!(client.get_invoice(&id1).status, InvoiceStatus::Repaid);
+    assert_eq!(client.get_invoice(&id2).status, InvoiceStatus::Funded);
+}
+
+
 
 
 
