@@ -1,0 +1,56 @@
+const { rpc } = require('@stellar/stellar-sdk');
+const config = require('../config');
+
+// Initialize Soroban RPC Server Client
+const rpcServer = new rpc.Server(config.stellarRpcUrl);
+
+/**
+ * Fetches current latest ledger sequence from Soroban RPC.
+ * @returns {Promise<number>} Latest ledger sequence number
+ */
+async function getLatestLedgerSequence() {
+  const latestLedgerInfo = await rpcServer.getLatestLedger();
+  return latestLedgerInfo.sequence;
+}
+
+/**
+ * Fetches raw events from Soroban RPC for a contract.
+ * @param {Object} params
+ * @param {number} params.startLedger - Starting ledger sequence number
+ * @param {string} [params.contractId] - Target contract ID (defaults to configured invoiceContractId)
+ * @param {string} [params.cursor] - Optional RPC pagination cursor
+ * @param {number} [params.limit=100] - Event fetch limit per request
+ * @returns {Promise<Object>} Raw RPC response object containing events and pagination metadata
+ */
+async function fetchRawContractEvents({ startLedger, contractId, cursor, limit = 100 }) {
+  const targetContractId = contractId || config.invoiceContractId;
+
+  if (!targetContractId) {
+    throw new Error('InvoiceContract ID is not configured');
+  }
+
+  const options = {
+    filters: [
+      {
+        type: 'contract',
+        contractIds: [targetContractId]
+      }
+    ],
+    limit
+  };
+
+  // Soroban RPC semantics: Pass cursor in pagination option, OR startLedger, but NOT both together
+  if (cursor) {
+    options.pagination = { cursor };
+  } else if (startLedger !== undefined && startLedger !== null) {
+    options.startLedger = startLedger;
+  }
+
+  return await rpcServer.getEvents(options);
+}
+
+module.exports = {
+  rpcServer,
+  getLatestLedgerSequence,
+  fetchRawContractEvents
+};
