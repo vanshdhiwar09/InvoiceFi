@@ -11,10 +11,10 @@ function testMissingEnv() {
   return new Promise((resolve) => {
     console.log('\n[Test 1] Verifying startup failure with missing required env variables...');
     
-    const child = spawn('node', ['src/server.js'], {
+    const child = spawn(process.execPath, ['src/server.js'], {
       cwd: projectRoot,
       env: {
-        // No environment variables provided
+        PATH: process.env.PATH || ''
       }
     });
 
@@ -31,7 +31,7 @@ function testMissingEnv() {
       if (isMissingDetected) {
         console.log('✅ PASS: Server exited cleanly with code 1 and reported missing variables.');
         resolve(true);
-      } else {
+        } else {
         console.log('❌ FAIL: Server did not report missing variables or exit correctly.');
         resolve(false);
       }
@@ -44,9 +44,10 @@ function testServerAndHealth() {
   return new Promise((resolve) => {
     console.log('\n[Test 2] Verifying successful server startup and GET /health response...');
 
-    const child = spawn('node', ['src/server.js'], {
+    const child = spawn(process.execPath, ['src/server.js'], {
       cwd: projectRoot,
       env: {
+        PATH: process.env.PATH || '',
         PORT: '4005',
         SUPABASE_URL: 'https://mock-project.supabase.co',
         SUPABASE_SERVICE_ROLE_KEY: 'mock-service-role-key-1234567890'

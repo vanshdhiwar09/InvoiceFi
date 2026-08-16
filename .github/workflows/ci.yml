@@ -25,11 +25,8 @@ jobs:
       - name: Run Soroban Contract Unit Tests
         run: cargo test --package invoice_contract
 
-      - name: Install Stellar CLI
-        run: cargo install --locked stellar-cli --features opt
-
       - name: Build Soroban Contract WASM
-        run: stellar contract build
+        run: cargo build --manifest-path=contracts/invoice_contract/Cargo.toml --target=wasm32v1-none --release
 
       - name: Verify WASM Artifact Existence
         run: |
