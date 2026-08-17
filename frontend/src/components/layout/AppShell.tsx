@@ -1,19 +1,34 @@
-import React from 'react';
+'use client';
+
+import React, { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { BadgeNetwork } from '../ui/BadgeNetwork';
 import { Button } from '../ui/Button';
+import { WalletConnectSheet } from '../wallet/WalletConnectSheet';
+import { useWallet } from '@/lib/wallet/WalletContext';
+import { formatAddress } from '@/lib/wallet/walletAdapter';
 
 export interface AppShellProps {
   children: React.ReactNode;
-  activeRoute?: 'dashboard' | 'invoices' | 'create';
+  activeRoute?: 'home' | 'dashboard' | 'invoices' | 'create';
 }
 
-export const AppShell: React.FC<AppShellProps> = ({ children, activeRoute = 'dashboard' }) => {
+export const AppShell: React.FC<AppShellProps> = ({ children, activeRoute }) => {
+  const pathname = usePathname();
+  const [isWalletSheetOpen, setIsWalletSheetOpen] = useState(false);
+  const { isConnected, walletName, publicKey } = useWallet();
+
+  const currentRoute = activeRoute || (
+    pathname === '/invoices' ? 'invoices' :
+    pathname === '/create' ? 'create' : 'home'
+  );
+
   return (
     <div className="min-h-screen flex flex-col bg-[#F5F8FB] text-[#0D1B2E]">
       {/* Top Header Bar */}
       <header className="sticky top-0 z-40 bg-white border-b border-[#E2E7EE] px-4 lg:px-8 py-3.5 flex items-center justify-between shadow-xs">
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4 lg:gap-6">
           <Link href="/" className="flex items-center gap-2 group">
             <div className="w-8 h-8 rounded-lg bg-[#4C3AFF] flex items-center justify-center text-white font-bold text-lg shadow-sm group-hover:bg-[#3C2ED4] transition-colors">
               I
@@ -30,19 +45,19 @@ export const AppShell: React.FC<AppShellProps> = ({ children, activeRoute = 'das
         {/* Desktop Navigation Links */}
         <nav className="hidden md:flex items-center gap-1 bg-[#F5F8FB] p-1 rounded-full border border-[#E2E7EE]">
           <Link
-            href="/dashboard"
+            href="/"
             className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
-              activeRoute === 'dashboard'
+              currentRoute === 'home' || currentRoute === 'dashboard'
                 ? 'bg-white text-[#4C3AFF] shadow-xs'
                 : 'text-[#647087] hover:text-[#0D1B2E]'
             }`}
           >
-            Dashboard
+            Home
           </Link>
           <Link
             href="/invoices"
             className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
-              activeRoute === 'invoices'
+              currentRoute === 'invoices'
                 ? 'bg-white text-[#4C3AFF] shadow-xs'
                 : 'text-[#647087] hover:text-[#0D1B2E]'
             }`}
@@ -52,20 +67,36 @@ export const AppShell: React.FC<AppShellProps> = ({ children, activeRoute = 'das
           <Link
             href="/create"
             className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
-              activeRoute === 'create'
+              currentRoute === 'create'
                 ? 'bg-white text-[#4C3AFF] shadow-xs'
                 : 'text-[#647087] hover:text-[#0D1B2E]'
             }`}
           >
-            New Invoice
+            Create
           </Link>
         </nav>
 
-        {/* Right Action Bar (Connect Wallet placeholder) */}
+        {/* Right Action Bar (Connect Wallet & Connected Address) */}
         <div className="flex items-center gap-3">
-          <Button variant="primary" size="sm">
-            Connect Wallet
-          </Button>
+          {isConnected ? (
+            <button
+              type="button"
+              onClick={() => setIsWalletSheetOpen(true)}
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#D7F0EA] border border-[#0F6E5C]/30 text-[#0F6E5C] text-xs font-medium hover:bg-[#D7F0EA]/80 transition-colors motion-fast"
+            >
+              <span className="w-2 h-2 rounded-full bg-[#0F6E5C]" />
+              <span>{walletName}</span>
+              <span className="font-mono font-semibold">{formatAddress(publicKey)}</span>
+            </button>
+          ) : (
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => setIsWalletSheetOpen(true)}
+            >
+              Connect Wallet
+            </Button>
+          )}
         </div>
       </header>
 
@@ -79,7 +110,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children, activeRoute = 'das
         <Link
           href="/"
           className={`flex flex-col items-center gap-1 text-xs font-medium ${
-            activeRoute === 'dashboard' ? 'text-[#4C3AFF]' : 'text-[#647087]'
+            currentRoute === 'home' || currentRoute === 'dashboard' ? 'text-[#4C3AFF]' : 'text-[#647087]'
           }`}
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -90,7 +121,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children, activeRoute = 'das
         <Link
           href="/create"
           className={`flex flex-col items-center gap-1 text-xs font-medium ${
-            activeRoute === 'create' ? 'text-[#4C3AFF]' : 'text-[#647087]'
+            currentRoute === 'create' ? 'text-[#4C3AFF]' : 'text-[#647087]'
           }`}
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -100,13 +131,15 @@ export const AppShell: React.FC<AppShellProps> = ({ children, activeRoute = 'das
         </Link>
         <button
           type="button"
-          onClick={() => alert('Wallet Connect Sheet (Phase 6B)')}
-          className="flex flex-col items-center gap-1 text-xs font-medium text-[#647087] hover:text-[#4C3AFF]"
+          onClick={() => setIsWalletSheetOpen(true)}
+          className={`flex flex-col items-center gap-1 text-xs font-medium ${
+            isConnected ? 'text-[#0F6E5C]' : 'text-[#647087] hover:text-[#4C3AFF]'
+          }`}
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
           </svg>
-          Wallet
+          {isConnected ? formatAddress(publicKey) : 'Wallet'}
         </button>
       </div>
 
@@ -123,6 +156,12 @@ export const AppShell: React.FC<AppShellProps> = ({ children, activeRoute = 'das
           </div>
         </div>
       </footer>
+
+      {/* Wallet Connect Sheet Overlay */}
+      <WalletConnectSheet
+        isOpen={isWalletSheetOpen}
+        onClose={() => setIsWalletSheetOpen(false)}
+      />
     </div>
   );
 };

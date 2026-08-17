@@ -6,9 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "node src/lib/wallet/__tests__/walletAdapter.test.mjs"
   },
   "dependencies": {
+    "@creit.tech/stellar-wallets-kit": "^2.5.0",
+    "@stellar/stellar-sdk": "^16.2.0",
     "next": "16.3.1",
     "react": "19.2.8",
     "react-dom": "19.2.8"
