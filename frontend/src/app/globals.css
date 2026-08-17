@@ -1,0 +1,168 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+:root {
+  /* Color Tokens */
+  --primary: #4C3AFF;
+  --primary-deep: #3C2ED4;
+  --primary-press: #2A1F94;
+  --primary-soft: #7669FF;
+  --primary-bg-subdued-hover: #DAD6FF;
+  
+  --ledger-teal: #0F6E5C;
+  --ledger-teal-soft: #D7F0EA;
+  
+  --brand-dark-900: #141A3D;
+  
+  --ink: #0D1B2E;
+  --ink-secondary: #2A3A52;
+  --ink-mute: #647087;
+  --ink-mute-2: #8894A6;
+  
+  --on-primary: #FFFFFF;
+  --canvas: #FFFFFF;
+  --canvas-soft: #F5F8FB;
+  --canvas-cream: #F4EFE1;
+  
+  --hairline: #E2E7EE;
+  --hairline-input: #AFC0DA;
+  
+  --ruby: #E23A6E;
+  --amber-caution: #B5730B;
+  --amber-bg: #FBF0DD;
+  --success-green: #0E8F5A;
+  --success-bg: #E3F6EC;
+  --danger-red: #D6304A;
+  --danger-bg: #FCE7EA;
+  
+  --mainnet-gold: #B8860B;
+  --testnet-slate: #5B6B85;
+  
+  --shadow-blue: #00234D;
+
+  /* Motion Timing Tokens */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@theme {
+  --color-primary: var(--primary);
+  --color-primary-deep: var(--primary-deep);
+  --color-primary-press: var(--primary-press);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-subdued: var(--primary-bg-subdued-hover);
+  
+  --color-ledger-teal: var(--ledger-teal);
+  --color-ledger-teal-soft: var(--ledger-teal-soft);
+  
+  --color-brand-dark: var(--brand-dark-900);
+  
+  --color-ink: var(--ink);
+  --color-ink-secondary: var(--ink-secondary);
+  --color-ink-mute: var(--ink-mute);
+  --color-ink-mute-2: var(--ink-mute-2);
+  
+  --color-canvas: var(--canvas);
+  --color-canvas-soft: var(--canvas-soft);
+  --color-canvas-cream: var(--canvas-cream);
+  
+  --color-hairline: var(--hairline);
+  --color-hairline-input: var(--hairline-input);
+  
+  --color-amber-caution: var(--amber-caution);
+  --color-amber-bg: var(--amber-bg);
+  --color-success-green: var(--success-green);
+  --color-success-bg: var(--success-bg);
+  --color-danger-red: var(--danger-red);
+  --color-danger-bg: var(--danger-bg);
+  
+  --color-mainnet-gold: var(--mainnet-gold);
+  --color-testnet-slate: var(--testnet-slate);
+  
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  
+  --radius-pill: 9999px;
+  --radius-xl: 16px;
+  --radius-lg: 12px;
+  --radius-md: 8px;
+  --radius-sm: 6px;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--canvas-soft);
+  color: var(--ink);
+  font-feature-settings: "ss01";
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Tabular Numerals Utility Class for Financial Data */
+.font-tabular {
+  font-feature-settings: "tnum";
+  font-variant-numeric: tabular-nums;
+}
+
+/* Elevation Utilities per §1 */
+.elevation-1 {
+  box-shadow: 0 1px 3px rgba(0, 35, 77, 0.08);
+}
+
+.elevation-2 {
+  box-shadow: 0 8px 24px rgba(0, 35, 77, 0.10), 0 2px 6px rgba(0, 35, 77, 0.05);
+}
+
+/* Centralized Motion Utilities per Phase 6A.5 */
+.motion-fast {
+  transition: all 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.motion-normal {
+  transition: all 250ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.motion-smooth {
+  transition: all 350ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Shimmer animation keyframe for restrained loading skeleton */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, #E2E7EE 25%, #F5F8FB 50%, #E2E7EE 75%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite ease-in-out;
+}
+
+/* Settlement Mesh ledger-line grid texture */
+.settlement-ledger-grid {
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(13, 27, 46, 0.06) 0,
+    rgba(13, 27, 46, 0.06) 1px,
+    transparent 0,
+    transparent 20px
+  );
+}
+
+/* Reduced Motion Accessibility Requirement per §8 */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  .animate-shimmer, .animate-pulse {
+    animation: none !important;
+    background: #E2E7EE !important;
+  }
+}
