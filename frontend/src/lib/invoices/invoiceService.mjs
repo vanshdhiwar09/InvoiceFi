@@ -1,6 +1,26 @@
 /**
  * Node Test Runner ES Module mirror for invoiceService unit tests.
  */
+const createdInvoicesStore = [];
+
+export function addCreatedInvoice(invoice) {
+  const existingIdx = createdInvoicesStore.findIndex(i => i.id === invoice.id || (i.contractId && i.contractId === invoice.contractId));
+  if (existingIdx >= 0) {
+    createdInvoicesStore[existingIdx] = invoice;
+  } else {
+    createdInvoicesStore.unshift(invoice);
+  }
+}
+
+export function updateInvoiceToTokenized(invoiceId) {
+  const found = createdInvoicesStore.find(i => i.id === invoiceId);
+  if (found) {
+    found.lifecycleState = 'Tokenized';
+    return true;
+  }
+  return false;
+}
+
 export function deriveInvoiceStatus(invoice, nowString) {
   const currentDate = nowString ? new Date(nowString) : new Date();
   const due = new Date(invoice.dueDate);
@@ -58,6 +78,15 @@ export function formatCurrency(amount) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   }).format(amount);
+}
+
+export function formatXlm(amount) {
+  if (amount === undefined || amount === null || isNaN(amount)) return '0 XLM';
+  const formatted = new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2
+  }).format(amount);
+  return `${formatted} XLM`;
 }
 
 export function getInvoiceActions(invoice, walletAddress) {

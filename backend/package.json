@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
-    "test": "node src/verify.js && node tests/eventIngestion.test.js && node tests/queueWorker.test.js"
+    "test": "node src/verify.js && node tests/eventIngestion.test.js && node tests/queueWorker.test.js && node tests/metadata.test.js"
   },
   "dependencies": {
     "@stellar/stellar-sdk": "^16.2.0",

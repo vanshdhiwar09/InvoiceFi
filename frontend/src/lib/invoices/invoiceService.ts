@@ -1,6 +1,38 @@
 import { Invoice, InvoiceStatus, InvoiceSummary, InvoiceActionHint } from './types';
 import { MOCK_INVOICES } from './mockInvoices';
 
+// Local in-memory invoice store to preserve newly created/tokenized invoices during session
+const createdInvoicesStore: Invoice[] = [];
+
+/**
+ * Adds a newly created invoice record to normalized state.
+ */
+export function addCreatedInvoice(invoice: Invoice): void {
+  const existingIdx = createdInvoicesStore.findIndex(i => i.id === invoice.id || (i.contractId && i.contractId === invoice.contractId));
+  if (existingIdx >= 0) {
+    createdInvoicesStore[existingIdx] = invoice;
+  } else {
+    createdInvoicesStore.unshift(invoice);
+  }
+}
+
+/**
+ * Updates an invoice record state to Tokenized.
+ */
+export function updateInvoiceToTokenized(invoiceId: string): boolean {
+  const foundInStore = createdInvoicesStore.find(i => i.id === invoiceId);
+  if (foundInStore) {
+    foundInStore.lifecycleState = 'Tokenized';
+    return true;
+  }
+  const foundInMock = MOCK_INVOICES.find(i => i.id === invoiceId);
+  if (foundInMock) {
+    foundInMock.lifecycleState = 'Tokenized';
+    return true;
+  }
+  return false;
+}
+
 /**
  * Derives the UI presentation status from the normalized Invoice object.
  * 'Overdue' is a UI-derived presentation state only when dueDate < currentDate and not settled.
@@ -91,6 +123,20 @@ export function formatCurrency(amount: number): string {
 }
 
 /**
+ * Formats native Stellar XLM asset values cleanly (e.g. 1,000 XLM).
+ */
+export function formatXlm(amount: number): string {
+  if (amount === undefined || amount === null || isNaN(amount)) {
+    return '0 XLM';
+  }
+  const formatted = new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2
+  }).format(amount);
+  return `${formatted} XLM`;
+}
+
+/**
  * Formats ISO date strings into clean editorial date format (e.g. 14 Sep 2026).
  */
 export function formatDate(dateString: string): string {
@@ -105,29 +151,30 @@ export function formatDate(dateString: string): string {
 }
 
 /**
- * Fetches invoices for a given wallet address. Returns mock invoices for demo context.
+ * Fetches invoices for a given wallet address. Combines newly created invoices with mock data.
  */
 export async function getInvoices(walletAddress?: string): Promise<Invoice[]> {
   if (walletAddress) {
     // Keep walletAddress param referenced
   }
-  await new Promise((resolve) => setTimeout(resolve, 300));
-  return MOCK_INVOICES;
+  await new Promise((resolve) => setTimeout(resolve, 200));
+  return [...createdInvoicesStore, ...MOCK_INVOICES];
 }
 
 /**
  * Fetches a single invoice by ID.
  */
 export async function getInvoiceById(id: string): Promise<Invoice | null> {
-  await new Promise((resolve) => setTimeout(resolve, 200));
-  const found = MOCK_INVOICES.find((inv) => inv.id === id);
-  return found || null;
+  await new Promise((resolve) => setTimeout(resolve, 150));
+  const foundCreated = createdInvoicesStore.find((inv) => inv.id === id);
+  if (foundCreated) return foundCreated;
+
+  const foundMock = MOCK_INVOICES.find((inv) => inv.id === id);
+  return foundMock || null;
 }
 
 /**
  * Determines role-aware action hints for an invoice based on wallet address and lifecycle state.
- * Level 4 investor resolution: Prospective investor (unfunded Tokenized + non-freelancer wallet)
- * vs Recorded investor (invoice.investorWallet === connectedWallet after funding).
  */
 export function getInvoiceActions(invoice: Invoice, walletAddress?: string): InvoiceActionHint {
   const isConnected = !!walletAddress;

@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node src/lib/wallet/__tests__/walletAdapter.test.mjs && node src/lib/invoices/__tests__/invoiceService.test.mjs"
+    "test": "node src/lib/wallet/__tests__/walletAdapter.test.mjs && node src/lib/invoices/__tests__/invoiceService.test.mjs && node src/lib/invoices/__tests__/createInvoice.test.mjs"
   },
   "dependencies": {
     "@creit.tech/stellar-wallets-kit": "^2.5.0",
