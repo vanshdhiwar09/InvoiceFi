@@ -8,7 +8,7 @@ export interface ShinyTextProps {
 export const ShinyText: React.FC<ShinyTextProps> = ({ children, className = '' }) => {
   return (
     <span
-      className={`inline-block bg-gradient-to-r from-[#0D1B2E] via-[#4C3AFF] to-[#0F6E5C] bg-clip-text text-transparent ${className}`}
+      className={`inline-block py-1 pb-1.5 leading-tight bg-gradient-to-r from-white via-[#A5F3FC] to-[#818CF8] bg-clip-text text-transparent ${className}`}
     >
       {children}
     </span>

@@ -7,14 +7,16 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node src/lib/wallet/__tests__/walletAdapter.test.mjs"
+    "test": "node src/lib/wallet/__tests__/walletAdapter.test.mjs && node src/lib/invoices/__tests__/invoiceService.test.mjs"
   },
   "dependencies": {
     "@creit.tech/stellar-wallets-kit": "^2.5.0",
     "@stellar/stellar-sdk": "^16.2.0",
+    "@types/three": "^0.185.4",
     "next": "16.3.1",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "three": "^0.185.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
