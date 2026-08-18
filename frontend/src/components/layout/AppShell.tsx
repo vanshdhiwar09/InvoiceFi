@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BadgeNetwork } from '../ui/BadgeNetwork';
 import { Button } from '../ui/Button';
 import { WalletConnectSheet } from '../wallet/WalletConnectSheet';
 import { useWallet } from '@/lib/wallet/WalletContext';
@@ -40,11 +39,6 @@ export const AppShell: React.FC<AppShellProps> = ({ children, hero, activeRoute 
               Invoice<span className="text-[#4C3AFF]">Fi</span>
             </span>
           </Link>
-
-          {/* Persistent Network Badge per InvoiceFi_DESIGN.md §2 & §4.6 */}
-          <div className="hidden sm:block shrink-0">
-            <BadgeNetwork network="TESTNET" />
-          </div>
         </div>
 
         {/* Center: Perfectly Centered Balanced Navigation Segment */}

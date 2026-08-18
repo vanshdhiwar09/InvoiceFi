@@ -4,7 +4,7 @@
 const createdInvoicesStore = [];
 
 export function addCreatedInvoice(invoice) {
-  const existingIdx = createdInvoicesStore.findIndex(i => i.id === invoice.id || (i.contractId && i.contractId === invoice.contractId));
+  const existingIdx = createdInvoicesStore.findIndex(i => i.id === invoice.id || (i.onChainId && invoice.onChainId && i.onChainId === invoice.onChainId));
   if (existingIdx >= 0) {
     createdInvoicesStore[existingIdx] = invoice;
   } else {
@@ -13,9 +13,47 @@ export function addCreatedInvoice(invoice) {
 }
 
 export function updateInvoiceToTokenized(invoiceId) {
-  const found = createdInvoicesStore.find(i => i.id === invoiceId);
+  const found = createdInvoicesStore.find(i => i.id === invoiceId || String(i.onChainId) === String(invoiceId).replace('INV-', ''));
   if (found) {
     found.lifecycleState = 'Tokenized';
+    return true;
+  }
+  return false;
+}
+
+export function updateInvoiceToFunded(invoiceId, investorWallet, fundedAmount) {
+  const targetId = invoiceId;
+  const numId = Number(String(invoiceId).replace('INV-', ''));
+
+  const foundInStore = createdInvoicesStore.find(i => i.id === targetId || i.onChainId === numId);
+  if (foundInStore) {
+    foundInStore.lifecycleState = 'Funded';
+    foundInStore.investorWallet = investorWallet;
+    foundInStore.fundedAmount = fundedAmount;
+    return true;
+  }
+  return false;
+}
+
+export function updateInvoiceToRepaid(invoiceId) {
+  const targetId = invoiceId;
+  const numId = Number(String(invoiceId).replace('INV-', ''));
+
+  const foundInStore = createdInvoicesStore.find(i => i.id === targetId || i.onChainId === numId);
+  if (foundInStore) {
+    foundInStore.lifecycleState = 'Repaid';
+    return true;
+  }
+  return false;
+}
+
+export function updateInvoiceToClosed(invoiceId) {
+  const targetId = invoiceId;
+  const numId = Number(String(invoiceId).replace('INV-', ''));
+
+  const foundInStore = createdInvoicesStore.find(i => i.id === targetId || i.onChainId === numId);
+  if (foundInStore) {
+    foundInStore.lifecycleState = 'Closed';
     return true;
   }
   return false;
@@ -109,7 +147,7 @@ export function getInvoiceActions(invoice, walletAddress) {
         return {
           actionKey: 'view',
           label: 'Waiting for Investor Funding',
-          description: 'Your invoice is tokenized on Stellar Testnet and awaiting investor liquidity.',
+          description: 'You\'re the invoice owner. Connect a different wallet to fund.',
           enabled: false,
           role: 'freelancer'
         };
@@ -130,16 +168,16 @@ export function getInvoiceActions(invoice, walletAddress) {
           actionKey: 'repay',
           label: 'Awaiting Repayment Settlement',
           description: 'Invoice is funded. Awaiting client Notice of Assignment settlement.',
-          enabled: true,
+          enabled: false,
           role: 'investor'
         };
       }
       return {
-        actionKey: 'repay',
-        label: 'Simulate Settlement',
-        description: 'Simulate client repayment with Notice of Assignment memo.',
-        enabled: true,
-        role: 'repayer'
+        actionKey: 'view',
+        label: 'Funding Unavailable',
+        description: 'Invoice is funded and awaiting repayment settlement.',
+        enabled: false,
+        role: 'viewer'
       };
 
     case 'Repaid':
@@ -147,7 +185,7 @@ export function getInvoiceActions(invoice, walletAddress) {
         actionKey: 'claim',
         label: 'Claim Investor Returns',
         description: 'Disburse principal plus return to investor wallet.',
-        enabled: isRecordedInvestor || !invoice.investorWallet,
+        enabled: true,
         role: 'investor'
       };
 

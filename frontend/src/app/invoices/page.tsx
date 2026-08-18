@@ -20,6 +20,8 @@ import {
   formatDate
 } from '@/lib/invoices/invoiceService';
 
+const ITEMS_PER_PAGE = 5;
+
 export default function DashboardInvoicesPage() {
   const router = useRouter();
   const { isConnected, publicKey } = useWallet();
@@ -28,6 +30,7 @@ export default function DashboardInvoicesPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('All');
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
   useEffect(() => {
     let isMounted = true;
@@ -58,8 +61,22 @@ export default function DashboardInvoicesPage() {
     };
   }, [publicKey]);
 
+  // Reset pagination to page 1 whenever status filter changes
+  const handleFilterChange = (tab: string) => {
+    setStatusFilter(tab);
+    setCurrentPage(1);
+  };
+
   const summary: InvoiceSummary = getInvoiceSummary(invoices);
   const filteredInvoices = filterInvoices(invoices, statusFilter);
+
+  // Pagination computations
+  const totalPages = Math.max(1, Math.ceil(filteredInvoices.length / ITEMS_PER_PAGE));
+  const validCurrentPage = Math.min(currentPage, totalPages);
+  
+  const startIndex = (validCurrentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, filteredInvoices.length);
+  const paginatedInvoices = filteredInvoices.slice(startIndex, endIndex);
 
   const filterTabs = ['All', 'Open', 'Funding', 'Funded', 'Repaid', 'Overdue'];
 
@@ -161,7 +178,7 @@ export default function DashboardInvoicesPage() {
                 <button
                   key={tab}
                   type="button"
-                  onClick={() => setStatusFilter(tab)}
+                  onClick={() => handleFilterChange(tab)}
                   className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
                     statusFilter === tab
                       ? 'bg-white text-[#4C3AFF] shadow-2xs font-semibold'
@@ -205,7 +222,7 @@ export default function DashboardInvoicesPage() {
               <Skeleton className="h-28 w-full" />
             </div>
           ) : filteredInvoices.length === 0 ? (
-            /* Empty State per Prompt Requirement */
+            /* Empty State */
             <EmptyState
               title="No invoices yet"
               description="Create your first invoice and start building your on-chain history."
@@ -215,73 +232,125 @@ export default function DashboardInvoicesPage() {
           ) : (
             /* Invoice Cards Workspace List */
             <div className="space-y-4">
-              {filteredInvoices.map((inv) => {
-                const status = deriveInvoiceStatus(inv);
-                const progressPct = inv.faceValue > 0 ? Math.min(Math.round((inv.fundedAmount / inv.advanceAmount) * 100), 100) : 0;
-                
-                // Derive return calculation if available
-                let returnLabel = '';
-                if (inv.repaymentAmount && inv.advanceAmount > 0) {
-                  const retPct = (((inv.repaymentAmount - inv.advanceAmount) / inv.advanceAmount) * 100).toFixed(1);
-                  returnLabel = `+${retPct}% Return`;
-                }
+              <div className="space-y-4">
+                {paginatedInvoices.map((inv) => {
+                  const status = deriveInvoiceStatus(inv);
+                  const progressPct = inv.faceValue > 0 ? Math.min(Math.round((inv.fundedAmount / inv.advanceAmount) * 100), 100) : 0;
+                  
+                  let returnLabel = '';
+                  if (inv.repaymentAmount && inv.advanceAmount > 0) {
+                    const retPct = (((inv.repaymentAmount - inv.advanceAmount) / inv.advanceAmount) * 100).toFixed(1);
+                    returnLabel = `+${retPct}% Return`;
+                  }
 
-                return (
-                  <Card
-                    key={inv.id}
-                    interactive
-                    onClick={() => router.push(`/invoices/${inv.id}`)}
-                    className="p-5 sm:p-6 space-y-4 hover:border-[#4C3AFF]/40 transition-all"
-                  >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#F5F8FB] pb-3">
-                      <div className="flex items-center gap-3">
-                        <span className="font-mono text-sm font-semibold text-[#0D1B2E]">
-                          {inv.id}
-                        </span>
-                        <StatusPill status={status} />
-                      </div>
-                      <span className="text-xs text-[#647087]">
-                        Due {formatDate(inv.dueDate)}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
-                      <div className="sm:col-span-5 space-y-1">
-                        <p className="text-xs text-[#647087]">Client</p>
-                        <p className="text-sm font-semibold text-[#0D1B2E]">{inv.clientName}</p>
-                        {inv.description && (
-                          <p className="text-xs text-[#8894A6] line-clamp-1">{inv.description}</p>
-                        )}
-                      </div>
-
-                      <div className="sm:col-span-4 space-y-1.5">
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="text-[#647087]">Funding Progress</span>
-                          <span className="font-mono font-semibold text-[#0D1B2E]">{progressPct}%</span>
-                        </div>
-                        <div className="w-full bg-[#F5F8FB] h-2 rounded-full overflow-hidden border border-[#E2E7EE]">
-                          <div
-                            className="bg-[#4C3AFF] h-full rounded-full transition-all duration-500"
-                            style={{ width: `${progressPct}%` }}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="sm:col-span-3 text-left sm:text-right space-y-0.5">
-                        <p className="text-xs text-[#647087]">Amount</p>
-                        <p className="font-mono tnum text-lg font-bold text-[#0D1B2E]">
-                          {formatCurrency(inv.faceValue)}
-                        </p>
-                        {returnLabel && (
-                          <span className="text-[11px] font-mono text-[#0F6E5C] font-semibold">
-                            {returnLabel}
+                  return (
+                    <Card
+                      key={inv.id}
+                      interactive
+                      onClick={() => router.push(`/invoices/${inv.id}`)}
+                      className="p-5 sm:p-6 space-y-4 hover:border-[#4C3AFF]/40 transition-all"
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#F5F8FB] pb-3">
+                        <div className="flex items-center gap-3">
+                          <span className="font-mono text-sm font-semibold text-[#0D1B2E]">
+                            {inv.id}
                           </span>
-                        )}
+                          <StatusPill status={status} />
+                        </div>
+                        <span className="text-xs text-[#647087]">
+                          Due {formatDate(inv.dueDate)}
+                        </span>
                       </div>
-                    </div>
-                  </Card>
-                );
-              })}
+
+                      <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
+                        <div className="sm:col-span-5 space-y-1">
+                          <p className="text-xs text-[#647087]">Client</p>
+                          <p className="text-sm font-semibold text-[#0D1B2E]">{inv.clientName}</p>
+                          {inv.description && (
+                            <p className="text-xs text-[#8894A6] line-clamp-1">{inv.description}</p>
+                          )}
+                        </div>
+
+                        <div className="sm:col-span-4 space-y-1.5">
+                          <div className="flex justify-between items-center text-xs">
+                            <span className="text-[#647087]">Funding Progress</span>
+                            <span className="font-mono font-semibold text-[#0D1B2E]">{progressPct}%</span>
+                          </div>
+                          <div className="w-full bg-[#F5F8FB] h-2 rounded-full overflow-hidden border border-[#E2E7EE]">
+                            <div
+                              className="bg-[#4C3AFF] h-full rounded-full transition-all duration-500"
+                              style={{ width: `${progressPct}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="sm:col-span-3 text-left sm:text-right space-y-0.5">
+                          <p className="text-xs text-[#647087]">Amount</p>
+                          <p className="font-mono tnum text-lg font-bold text-[#0D1B2E]">
+                            {formatCurrency(inv.faceValue)}
+                          </p>
+                          {returnLabel && (
+                            <span className="text-[11px] font-mono text-[#0F6E5C] font-semibold">
+                              {returnLabel}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
+
+              {/* PAGINATION CONTROLS BAR */}
+              {filteredInvoices.length > 0 && (
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-[#E2E7EE]">
+                  <p className="text-xs text-[#647087]">
+                    Showing <span className="font-semibold text-[#0D1B2E]">{startIndex + 1}–{endIndex}</span> of{' '}
+                    <span className="font-semibold text-[#0D1B2E]">{filteredInvoices.length}</span> invoices
+                  </p>
+
+                  <div className="flex items-center gap-1.5">
+                    {/* Previous Button */}
+                    <button
+                      type="button"
+                      disabled={validCurrentPage === 1}
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-[#E2E7EE] bg-white text-[#0D1B2E] hover:bg-[#F5F8FB] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                    >
+                      ← Prev
+                    </button>
+
+                    {/* Numeric Page Buttons */}
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
+                      const isActive = pageNum === validCurrentPage;
+                      return (
+                        <button
+                          key={pageNum}
+                          type="button"
+                          onClick={() => setCurrentPage(pageNum)}
+                          className={`w-8 h-8 rounded-lg text-xs font-semibold font-mono transition-all ${
+                            isActive
+                              ? 'bg-[#4C3AFF] text-white shadow-xs'
+                              : 'bg-white border border-[#E2E7EE] text-[#647087] hover:bg-[#F5F8FB] hover:text-[#0D1B2E]'
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
+
+                    {/* Next Button */}
+                    <button
+                      type="button"
+                      disabled={validCurrentPage >= totalPages}
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-[#E2E7EE] bg-white text-[#0D1B2E] hover:bg-[#F5F8FB] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                    >
+                      Next →
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

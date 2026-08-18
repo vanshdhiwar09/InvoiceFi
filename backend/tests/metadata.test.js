@@ -5,7 +5,7 @@ const { supabase } = require('../src/supabase');
 const app = require('../src/app');
 const http = require('http');
 
-console.log('--- STARTING PHASE 6E METADATA & ON-CHAIN MAPPING BACKEND UNIT TESTS ---');
+console.log('--- STARTING PHASE 6F METADATA & NOA BACKEND UNIT TESTS ---');
 
 let totalTests = 0;
 let passedTests = 0;
@@ -25,11 +25,13 @@ class MockSupabaseDB {
   constructor() {
     this.invoices = [];
     this.storageFiles = [];
+    this.noticeQueue = [];
   }
 
   reset() {
     this.invoices = [];
     this.storageFiles = [];
+    this.noticeQueue = [];
   }
 }
 
@@ -65,6 +67,28 @@ function patchSupabaseMock() {
         })
       };
     }
+
+    if (tableName === 'notice_assignment_queue') {
+      return {
+        select: (cols) => ({
+          eq: (col, val) => ({
+            order: (orderCol, opts) => ({
+              limit: (lim) => Promise.resolve({
+                data: mockDb.noticeQueue.filter(q => String(q[col]) === String(val)),
+                error: null
+              })
+            })
+          }),
+          order: (orderCol, opts) => ({
+            limit: (lim) => Promise.resolve({
+              data: mockDb.noticeQueue,
+              error: null
+            })
+          })
+        })
+      };
+    }
+
     return originalFrom.call(supabase, tableName);
   };
 
@@ -169,7 +193,7 @@ async function runAllTests() {
           client_email: 'finance@acme.com',
           freelancer_address: 'GAN5PGTFXO5ZVASEW5YTFB3F4324CDBXNNQ7GXHNHUL5C3IJVWZK2F3S',
           face_value: 10000,
-          funding_amount: 10000, // Invalid: funding_amount must be strictly < face_value
+          funding_amount: 10000,
           due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
         });
 
@@ -238,10 +262,42 @@ async function runAllTests() {
           'Test 7: PATCH on-chain maps confirmed Soroban invoice_id (42) to client_ref record');
       }
 
+      // Test 8: GET /api/invoices/:id/noa resolves queue status by numeric on_chain_id
+      {
+        mockDb.reset();
+        mockDb.noticeQueue.push({
+          event_id: 'evt_101',
+          invoice_id: 42,
+          client_ref: 'clt_ref_test_100',
+          status: 'PROCESSED',
+          processed_at: new Date().toISOString()
+        });
+
+        const res = await makeRequest('GET', '/api/invoices/42/noa');
+        assert(res.status === 200 && res.body.success === true && res.body.status === 'PROCESSED' && res.body.noa.reference === 'INV-42',
+          'Test 8: GET /api/invoices/42/noa resolves PROCESSED NoA status for numeric Soroban invoice_id');
+      }
+
+      // Test 9: GET /api/invoices/:id/noa returns FAILED_PERMANENT status
+      {
+        mockDb.reset();
+        mockDb.noticeQueue.push({
+          event_id: 'evt_102',
+          invoice_id: 99,
+          client_ref: 'clt_ref_test_99',
+          status: 'FAILED_PERMANENT',
+          retry_count: 5
+        });
+
+        const res = await makeRequest('GET', '/api/invoices/99/noa');
+        assert(res.status === 200 && res.body.status === 'FAILED_PERMANENT' && res.body.retry_count === 5,
+          'Test 9: GET /api/invoices/99/noa returns FAILED_PERMANENT status after retry exhaustion');
+      }
+
       console.log(`\nResults: ${passedTests}/${totalTests} metadata backend unit tests passed.`);
       server.close(() => {
         if (passedTests === totalTests) {
-          console.log('🎉 ALL METADATA & ON-CHAIN MAPPING BACKEND UNIT TESTS PASSED.');
+          console.log('🎉 ALL METADATA & NOA BACKEND UNIT TESTS PASSED.');
           process.exit(0);
         } else {
           console.error('❌ SOME UNIT TESTS FAILED.');

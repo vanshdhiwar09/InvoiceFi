@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { AppShell } from '@/components/layout/AppShell';
 import { Button } from '@/components/ui/Button';
 import { StatusPill } from '@/components/ui/StatusPill';
-import { BadgeNetwork } from '@/components/ui/BadgeNetwork';
 import { LightPillar } from '@/components/marketing/LightPillar';
 import { ShinyText } from '@/components/marketing/ShinyText';
 
@@ -325,35 +324,6 @@ export default function HomePage() {
               Full Stellar Wallets Kit support for Freighter, Albedo, and xBull without storing private keys or user credentials.
             </p>
           </div>
-        </div>
-      </section>
-
-      {/* ---------------------------------------------------- */}
-      {/* SECTION 3: TRUST & TESTNET MVP DISCLOSURE            */}
-      {/* ---------------------------------------------------- */}
-      <section className="py-8 sm:py-10 border-t border-[#E2E7EE]">
-        <div className="bg-gradient-to-r from-[#F8FAFC] via-white to-[#F8FAFC] border border-[#E2E7EE] rounded-3xl p-6 sm:p-10 space-y-4 shadow-sm">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#5B6B85]" />
-                <span className="text-xs font-semibold text-[#0D1B2E] uppercase tracking-wider">
-                  Testnet Architecture Disclosure
-                </span>
-              </div>
-              <h3 className="text-lg sm:text-xl font-semibold text-[#0D1B2E]">
-                Level 4 Testnet MVP Demonstration
-              </h3>
-            </div>
-            <BadgeNetwork network="TESTNET" />
-          </div>
-
-          <p className="text-xs sm:text-sm text-[#647087] leading-relaxed">
-            InvoiceFi is operating on Stellar Soroban Testnet for developer verification. Deployed Contract ID:{' '}
-            <code className="font-mono text-[11px] sm:text-xs text-[#0D1B2E] bg-white px-2.5 py-1 rounded-lg border border-[#E2E7EE] select-all font-semibold break-all sm:break-normal">
-              CCG2BPR7NEQPV4XOLABSZOWSU24CBJXF4V7LEXIXMAMBPIL6P5CPO2YR
-            </code>
-          </p>
         </div>
       </section>
 

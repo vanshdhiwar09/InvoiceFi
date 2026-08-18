@@ -14,7 +14,9 @@ function testMissingEnv() {
     const child = spawn(process.execPath, ['src/server.js'], {
       cwd: projectRoot,
       env: {
-        PATH: process.env.PATH || ''
+        PATH: process.env.PATH || '',
+        PORT: '4009',
+        TEST_MISSING_ENV: 'true'
       }
     });
 

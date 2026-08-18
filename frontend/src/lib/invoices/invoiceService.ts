@@ -1,5 +1,8 @@
-import { Invoice, InvoiceStatus, InvoiceSummary, InvoiceActionHint } from './types';
+import { Invoice, InvoiceStatus, InvoiceSummary, InvoiceActionHint, InvoiceLifecycleState, NoAQueueStatus } from './types';
 import { MOCK_INVOICES } from './mockInvoices';
+
+export const INVOICE_CONTRACT_ID = process.env.NEXT_PUBLIC_INVOICE_CONTRACT_ID || 'CCG2BPR7NEQPV4XOLABSZOWSU24CBJXF4V7LEXIXMAMBPIL6P5CPO2YR';
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000';
 
 // Local in-memory invoice store to preserve newly created/tokenized invoices during session
 const createdInvoicesStore: Invoice[] = [];
@@ -8,7 +11,9 @@ const createdInvoicesStore: Invoice[] = [];
  * Adds a newly created invoice record to normalized state.
  */
 export function addCreatedInvoice(invoice: Invoice): void {
-  const existingIdx = createdInvoicesStore.findIndex(i => i.id === invoice.id || (i.contractId && i.contractId === invoice.contractId));
+  const existingIdx = createdInvoicesStore.findIndex(i =>
+    i.id === invoice.id || (i.onChainId && invoice.onChainId && i.onChainId === invoice.onChainId)
+  );
   if (existingIdx >= 0) {
     createdInvoicesStore[existingIdx] = invoice;
   } else {
@@ -20,7 +25,7 @@ export function addCreatedInvoice(invoice: Invoice): void {
  * Updates an invoice record state to Tokenized.
  */
 export function updateInvoiceToTokenized(invoiceId: string): boolean {
-  const foundInStore = createdInvoicesStore.find(i => i.id === invoiceId);
+  const foundInStore = createdInvoicesStore.find(i => i.id === invoiceId || String(i.onChainId) === invoiceId.replace('INV-', ''));
   if (foundInStore) {
     foundInStore.lifecycleState = 'Tokenized';
     return true;
@@ -31,6 +36,92 @@ export function updateInvoiceToTokenized(invoiceId: string): boolean {
     return true;
   }
   return false;
+}
+
+/**
+ * Updates an invoice record state to Funded upon on-chain reconciliation.
+ */
+export function updateInvoiceToFunded(invoiceId: string, investorWallet: string, fundedAmount: number): boolean {
+  const targetId = invoiceId;
+  const numId = Number(invoiceId.replace('INV-', ''));
+
+  // Sync off-chain database status to FUNDED in Supabase
+  const targetParam = !isNaN(numId) && numId > 0 ? String(numId) : invoiceId;
+  fetch(`${BACKEND_URL}/api/invoices/${encodeURIComponent(targetParam)}/funded`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ investor_address: investorWallet, funding_amount: fundedAmount })
+  }).catch(() => null);
+
+  const foundInStore = createdInvoicesStore.find(i => i.id === targetId || i.onChainId === numId);
+  if (foundInStore) {
+    foundInStore.lifecycleState = 'Funded';
+    foundInStore.investorWallet = investorWallet;
+    foundInStore.fundedAmount = fundedAmount;
+  }
+
+  const foundInMock = MOCK_INVOICES.find(i => i.id === targetId || i.onChainId === numId);
+  if (foundInMock) {
+    foundInMock.lifecycleState = 'Funded';
+    foundInMock.investorWallet = investorWallet;
+    foundInMock.fundedAmount = fundedAmount;
+  }
+
+  return true;
+}
+
+/**
+ * Updates an invoice record state to Repaid upon on-chain reconciliation.
+ */
+export function updateInvoiceToRepaid(invoiceId: string): boolean {
+  const targetId = invoiceId;
+  const numId = Number(invoiceId.replace('INV-', ''));
+
+  // Sync off-chain database status to REPAID in Supabase
+  const targetParam = !isNaN(numId) && numId > 0 ? String(numId) : invoiceId;
+  fetch(`${BACKEND_URL}/api/invoices/${encodeURIComponent(targetParam)}/repaid`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' }
+  }).catch(() => null);
+
+  const foundInStore = createdInvoicesStore.find(i => i.id === targetId || i.onChainId === numId);
+  if (foundInStore) {
+    foundInStore.lifecycleState = 'Repaid';
+  }
+
+  const foundInMock = MOCK_INVOICES.find(i => i.id === targetId || i.onChainId === numId);
+  if (foundInMock) {
+    foundInMock.lifecycleState = 'Repaid';
+  }
+
+  return true;
+}
+
+/**
+ * Updates an invoice record state to Closed upon on-chain reconciliation.
+ */
+export function updateInvoiceToClosed(invoiceId: string): boolean {
+  const targetId = invoiceId;
+  const numId = Number(invoiceId.replace('INV-', ''));
+
+  // Sync off-chain database status to CLOSED in Supabase
+  const targetParam = !isNaN(numId) && numId > 0 ? String(numId) : invoiceId;
+  fetch(`${BACKEND_URL}/api/invoices/${encodeURIComponent(targetParam)}/closed`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' }
+  }).catch(() => null);
+
+  const foundInStore = createdInvoicesStore.find(i => i.id === targetId || i.onChainId === numId);
+  if (foundInStore) {
+    foundInStore.lifecycleState = 'Closed';
+  }
+
+  const foundInMock = MOCK_INVOICES.find(i => i.id === targetId || i.onChainId === numId);
+  if (foundInMock) {
+    foundInMock.lifecycleState = 'Closed';
+  }
+
+  return true;
 }
 
 /**
@@ -151,26 +242,123 @@ export function formatDate(dateString: string): string {
 }
 
 /**
- * Fetches invoices for a given wallet address. Combines newly created invoices with mock data.
+ * Fetches invoices from backend REST API and merges with session createdInvoicesStore and MOCK_INVOICES.
  */
 export async function getInvoices(walletAddress?: string): Promise<Invoice[]> {
   if (walletAddress) {
-    // Keep walletAddress param referenced
+    // Parameter referenced
   }
-  await new Promise((resolve) => setTimeout(resolve, 200));
-  return [...createdInvoicesStore, ...MOCK_INVOICES];
+
+  let backendInvoices: Invoice[] = [];
+
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/invoices`).catch(() => null);
+    if (res && res.ok) {
+      const data = await res.json();
+      if (data.success && Array.isArray(data.invoices)) {
+        backendInvoices = data.invoices.map((dbInv: {
+          id: string;
+          client_ref: string;
+          on_chain_id?: number | string;
+          client_name: string;
+          face_value: number | string;
+          funding_amount: number | string;
+          repayment_amount?: number | string;
+          status?: string;
+          created_at?: string;
+          due_date?: string;
+          freelancer_address: string;
+          investor_address?: string;
+          description?: string;
+        }) => {
+          const onChainIdNum = dbInv.on_chain_id ? Number(dbInv.on_chain_id) : undefined;
+          const displayId = onChainIdNum ? `INV-${onChainIdNum}` : `INV-${dbInv.client_ref.slice(-6)}`;
+
+          let lifecycleState: InvoiceLifecycleState = 'Created';
+          if (dbInv.status === 'TOKENIZED') lifecycleState = 'Tokenized';
+          if (dbInv.status === 'FUNDED') lifecycleState = 'Funded';
+          if (dbInv.status === 'REPAID') lifecycleState = 'Repaid';
+          if (dbInv.status === 'CLOSED') lifecycleState = 'Closed';
+
+          return {
+            id: displayId,
+            clientName: dbInv.client_name,
+            faceValue: Number(dbInv.face_value),
+            advanceAmount: Number(dbInv.funding_amount),
+            fundedAmount: dbInv.status === 'FUNDED' ? Number(dbInv.funding_amount) : 0,
+            repaymentAmount: Number(dbInv.repayment_amount || dbInv.face_value),
+            lifecycleState,
+            issuedDate: dbInv.created_at ? new Date(dbInv.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            dueDate: dbInv.due_date ? new Date(dbInv.due_date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            freelancerWallet: dbInv.freelancer_address,
+            investorWallet: dbInv.investor_address || undefined,
+            contractId: INVOICE_CONTRACT_ID,
+            onChainId: onChainIdNum,
+            clientRef: dbInv.client_ref,
+            stellarMemo: onChainIdNum ? `INV-${onChainIdNum}` : undefined,
+            description: dbInv.description || `B2B Receivable issued to ${dbInv.client_name}`
+          };
+        });
+      }
+    }
+  } catch {
+    // Fallback if backend server offline
+  }
+
+  // Merge map by id & onChainId
+  const allMap = new Map<string, Invoice>();
+  MOCK_INVOICES.forEach(i => allMap.set(i.id, i));
+  backendInvoices.forEach(i => allMap.set(i.id, i));
+  createdInvoicesStore.forEach(i => allMap.set(i.id, i));
+
+  return Array.from(allMap.values());
 }
 
 /**
- * Fetches a single invoice by ID.
+ * Fetches a single invoice by ID, onChainId, or clientRef.
  */
 export async function getInvoiceById(id: string): Promise<Invoice | null> {
-  await new Promise((resolve) => setTimeout(resolve, 150));
-  const foundCreated = createdInvoicesStore.find((inv) => inv.id === id);
-  if (foundCreated) return foundCreated;
+  const all = await getInvoices();
 
-  const foundMock = MOCK_INVOICES.find((inv) => inv.id === id);
-  return foundMock || null;
+  const numSearch = Number(id.replace('INV-', ''));
+  const isNum = !isNaN(numSearch) && numSearch > 0;
+
+  const found = all.find(i =>
+    i.id === id ||
+    i.clientRef === id ||
+    (isNum && i.onChainId === numSearch)
+  );
+
+  return found || null;
+}
+
+/**
+ * Fetches Notice of Assignment queue status for an onChainId or clientRef from backend.
+ */
+export async function fetchBackendNoAStatus(
+  onChainId?: number,
+  clientRef?: string
+): Promise<{ status: NoAQueueStatus; noa?: { reference: string; processedAt?: string; memo?: string } | null }> {
+  try {
+    let url = `${BACKEND_URL}/api/invoices/${onChainId || 0}/noa`;
+    if (clientRef) {
+      url += `?client_ref=${encodeURIComponent(clientRef)}`;
+    }
+
+    const res = await fetch(url).catch(() => null);
+    if (res && res.ok) {
+      const data = await res.json();
+      if (data.success) {
+        return {
+          status: data.status as NoAQueueStatus,
+          noa: data.noa || null
+        };
+      }
+    }
+  } catch {
+    // Catch fetch network errors
+  }
+  return { status: 'NONE', noa: null };
 }
 
 /**
@@ -196,7 +384,7 @@ export function getInvoiceActions(invoice: Invoice, walletAddress?: string): Inv
         return {
           actionKey: 'view',
           label: 'Waiting for Investor Funding',
-          description: 'Your invoice is tokenized on Stellar Testnet and awaiting investor liquidity.',
+          description: 'You\'re the invoice owner. Connect a different wallet to fund.',
           enabled: false,
           role: 'freelancer'
         };
@@ -217,16 +405,16 @@ export function getInvoiceActions(invoice: Invoice, walletAddress?: string): Inv
           actionKey: 'repay',
           label: 'Awaiting Repayment Settlement',
           description: 'Invoice is funded. Awaiting client Notice of Assignment settlement.',
-          enabled: true,
+          enabled: false,
           role: 'investor'
         };
       }
       return {
-        actionKey: 'repay',
-        label: 'Simulate Settlement',
-        description: 'Simulate client repayment with Notice of Assignment memo.',
-        enabled: true,
-        role: 'repayer'
+        actionKey: 'view',
+        label: 'Funding Unavailable',
+        description: 'Invoice is funded and awaiting repayment settlement.',
+        enabled: false,
+        role: 'viewer'
       };
 
     case 'Repaid':
@@ -234,7 +422,7 @@ export function getInvoiceActions(invoice: Invoice, walletAddress?: string): Inv
         actionKey: 'claim',
         label: 'Claim Investor Returns',
         description: 'Disburse principal plus return to investor wallet.',
-        enabled: isRecordedInvestor || !invoice.investorWallet,
+        enabled: true,
         role: 'investor'
       };
 

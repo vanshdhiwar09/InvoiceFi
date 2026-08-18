@@ -4,6 +4,11 @@ const path = require('path');
 // Load environment variables from .env file
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
+if (process.env.TEST_MISSING_ENV === 'true') {
+  delete process.env.SUPABASE_URL;
+  delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+}
+
 const isProduction = process.env.NODE_ENV === 'production';
 const isDaemonEnabled = process.env.ENABLE_BACKGROUND_DAEMON === 'true' || isProduction;
 

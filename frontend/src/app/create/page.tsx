@@ -25,6 +25,7 @@ export default function CreateInvoicePage() {
   const [dueDateIso, setDueDateIso] = useState<string>('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
+  const [isSelfVerified, setIsSelfVerified] = useState<boolean>(false);
 
   // Field Validation Error States
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -109,6 +110,10 @@ export default function CreateInvoicePage() {
       } else if (selected > oneYearOut) {
         newErrors.dueDate = 'Due date cannot exceed 1 year in the future.';
       }
+    }
+
+    if (!isSelfVerified) {
+      newErrors.selfVerified = 'You must verify the accuracy of the invoice details before proceeding.';
     }
 
     setErrors(newErrors);
@@ -508,17 +513,27 @@ export default function CreateInvoicePage() {
                       </div>
                     </Card>
 
-                    {/* CARD 3: SELF-ATTESTATION DISCLOSURE */}
-                    <div className="p-4 rounded-2xl bg-[#FFFBEB] border border-[#FCD34D]/60 text-[#92400E] text-xs space-y-1.5 shadow-2xs">
-                      <div className="flex items-center gap-2 font-bold uppercase tracking-wider text-[11px] text-[#D97706]">
-                        <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                        </svg>
-                        SELF-ATTESTATION DISCLOSURE
-                      </div>
-                      <p className="text-[11px] leading-relaxed text-[#B45309]">
-                        Self-attested — InvoiceFi doesn&apos;t yet verify this invoice against a third-party source. Stronger verification ships at Level 6.
-                      </p>
+                    {/* CARD 3: INTERACTIVE SELF-VERIFICATION CHECKBOX */}
+                    <div className="p-4 rounded-2xl bg-[#F5F8FB] border border-[#E2E7EE] space-y-2">
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={isSelfVerified}
+                          onChange={(e) => {
+                            setIsSelfVerified(e.target.checked);
+                            if (errors.selfVerified) {
+                              setErrors((prev) => ({ ...prev, selfVerified: '' }));
+                            }
+                          }}
+                          className="mt-0.5 w-4 h-4 rounded border-[#CBD5E1] text-[#4C3AFF] focus:ring-[#4C3AFF] cursor-pointer shrink-0"
+                        />
+                        <span className="text-xs text-[#0D1B2E] font-medium leading-relaxed select-none">
+                          I verify that I am authorized to issue this invoice and that all provided financial parameters and document details are accurate and self-attested.
+                        </span>
+                      </label>
+                      {errors.selfVerified && (
+                        <p className="text-xs font-medium text-[#D6304A] pt-1 pl-7">{errors.selfVerified}</p>
+                      )}
                     </div>
 
                     {/* PRIMARY SUBMIT BUTTON */}
@@ -540,21 +555,24 @@ export default function CreateInvoicePage() {
 
             {/* STATE 2: CREATED SUCCESS VIEW (Step 1 Complete -> Tokenization Available) */}
             {flowState === 'created' && (
-              <Card className="p-8 text-center space-y-6 bg-white border-[#E2E7EE] shadow-md max-w-lg mx-auto rounded-2xl">
-                <div className="w-12 h-12 rounded-full bg-[#D7F0EA] border border-[#0F6E5C]/30 flex items-center justify-center text-[#0F6E5C] mx-auto">
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                  </svg>
+              <Card className="p-8 text-center space-y-6 bg-white border-[#E2E7EE] shadow-lg max-w-lg mx-auto rounded-2xl">
+                <div className="w-14 h-14 rounded-full bg-[#EFEFFE] flex items-center justify-center text-[#4C3AFF] mx-auto font-bold text-xl">
+                  ✓
                 </div>
 
                 <div className="space-y-2">
-                  <StatusPill status="Created" />
-                  <h2 className="text-xl font-semibold text-[#0D1B2E]">Invoice Created Successfully</h2>
+                  <div className="flex items-center justify-center gap-2">
+                    <StatusPill status="Created" />
+                    <span className="text-xs font-semibold text-[#0F6E5C] bg-[#D7F0EA] px-2.5 py-0.5 rounded-full border border-[#0F6E5C]/20">
+                      Self-attested
+                    </span>
+                  </div>
+                  <h2 className="text-xl font-semibold text-[#0D1B2E]">Invoice Metadata Persisted</h2>
                   <p className="font-mono text-base font-bold text-[#4C3AFF]">
                     INV-{createdInvoiceId}
                   </p>
-                  <p className="text-xs text-[#647087] max-w-sm mx-auto">
-                    Your invoice metadata and transaction are confirmed on Soroban Testnet (Step 1 complete). Click below to tokenize this receivable and make it available for funding.
+                  <p className="text-xs text-[#647087] max-w-sm mx-auto leading-relaxed">
+                    Private metadata was stored off-chain. Complete Step 2 to mint and tokenize this invoice on Soroban Testnet.
                   </p>
                 </div>
 
@@ -563,11 +581,6 @@ export default function CreateInvoicePage() {
                     Tx Hash: <span className="text-[#0D1B2E] select-all">{createdTxHash.slice(0, 16)}…{createdTxHash.slice(-8)}</span>
                   </div>
                 )}
-
-                {/* PERSISTENT AMBER SELF-ATTESTATION DISCLOSURE */}
-                <div className="p-3.5 rounded-xl bg-[#FFFBEB] border border-[#FCD34D]/60 text-[#B45309] text-xs text-left">
-                  Self-attested — InvoiceFi doesn&apos;t yet verify this invoice against a third-party source. Stronger verification ships at Level 6.
-                </div>
 
                 {/* STEP 2 CTA: TOKENIZE INVOICE */}
                 <Button
@@ -606,11 +619,6 @@ export default function CreateInvoicePage() {
                   <p className="text-xs text-[#647087] max-w-sm mx-auto leading-relaxed">
                     Your invoice is now tokenized on Stellar Testnet and available for investor funding.
                   </p>
-                </div>
-
-                {/* PERSISTENT AMBER SELF-ATTESTATION DISCLOSURE */}
-                <div className="p-3.5 rounded-xl bg-[#FFFBEB] border border-[#FCD34D]/60 text-[#B45309] text-xs text-left">
-                  Self-attested — InvoiceFi doesn&apos;t yet verify this invoice against a third-party source. Stronger verification ships at Level 6.
                 </div>
 
                 {/* NAVIGATE TO WORKSPACE CTA */}

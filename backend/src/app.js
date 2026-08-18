@@ -287,6 +287,135 @@ app.patch('/api/invoices/:client_ref/tokenize', async (req, res, next) => {
 });
 
 /**
+ * PATCH /api/invoices/:id/funded
+ * Updates status to FUNDED upon confirmed invest() transaction.
+ */
+app.patch('/api/invoices/:id/funded', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { investor_address, funding_amount } = req.body || {};
+
+    const cleanId = String(id).replace('INV-', '');
+    const numericId = Number(cleanId);
+    const isValidNumericId = !isNaN(numericId) && numericId > 0;
+
+    const updatePayload = {
+      status: 'FUNDED',
+      updated_at: new Date().toISOString()
+    };
+    if (funding_amount) updatePayload.funding_amount = Number(funding_amount);
+
+    let query = supabase.from('invoices').update(updatePayload);
+
+    if (isValidNumericId) {
+      query = query.eq('on_chain_id', numericId);
+    } else if (typeof id === 'string' && id.startsWith('clt_ref_')) {
+      query = query.eq('client_ref', id);
+    } else {
+      return res.status(400).json({ error: 'Bad Request', message: 'Valid on_chain_id or client_ref is required' });
+    }
+
+    const { data, error } = await query.select();
+
+    if (error) {
+      return res.status(500).json({ error: 'Internal Server Error', message: error.message });
+    }
+
+    res.status(200).json({
+      success: true,
+      status: 'FUNDED',
+      invoice: data && data.length > 0 ? data[0] : null
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * PATCH /api/invoices/:id/repaid
+ * Off-chain mirror endpoint to update status to REPAID upon confirmed Soroban repay() transaction.
+ */
+app.patch('/api/invoices/:id/repaid', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const cleanId = String(id).replace('INV-', '');
+    const numericId = Number(cleanId);
+    const isValidNumericId = !isNaN(numericId) && numericId > 0;
+
+    const updatePayload = {
+      status: 'REPAID',
+      updated_at: new Date().toISOString()
+    };
+
+    let query = supabase.from('invoices').update(updatePayload);
+
+    if (isValidNumericId) {
+      query = query.eq('on_chain_id', numericId);
+    } else if (typeof id === 'string' && id.startsWith('clt_ref_')) {
+      query = query.eq('client_ref', id);
+    } else {
+      return res.status(400).json({ error: 'Bad Request', message: 'Valid on_chain_id or client_ref is required' });
+    }
+
+    const { data, error } = await query.select();
+
+    if (error) {
+      return res.status(500).json({ error: 'Internal Server Error', message: error.message });
+    }
+
+    res.status(200).json({
+      success: true,
+      status: 'REPAID',
+      invoice: data && data.length > 0 ? data[0] : null
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * PATCH /api/invoices/:id/closed
+ * Off-chain mirror endpoint to update status to CLOSED upon confirmed Soroban claim_returns() transaction.
+ */
+app.patch('/api/invoices/:id/closed', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const cleanId = String(id).replace('INV-', '');
+    const numericId = Number(cleanId);
+    const isValidNumericId = !isNaN(numericId) && numericId > 0;
+
+    const updatePayload = {
+      status: 'CLOSED',
+      updated_at: new Date().toISOString()
+    };
+
+    let query = supabase.from('invoices').update(updatePayload);
+
+    if (isValidNumericId) {
+      query = query.eq('on_chain_id', numericId);
+    } else if (typeof id === 'string' && id.startsWith('clt_ref_')) {
+      query = query.eq('client_ref', id);
+    } else {
+      return res.status(400).json({ error: 'Bad Request', message: 'Valid on_chain_id or client_ref is required' });
+    }
+
+    const { data, error } = await query.select();
+
+    if (error) {
+      return res.status(500).json({ error: 'Internal Server Error', message: error.message });
+    }
+
+    res.status(200).json({
+      success: true,
+      status: 'CLOSED',
+      invoice: data && data.length > 0 ? data[0] : null
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
  * GET /api/invoices
  * Returns all off-chain invoice records for workspace integration.
  */
@@ -304,6 +433,72 @@ app.get('/api/invoices', async (req, res, next) => {
     res.status(200).json({
       success: true,
       invoices: data || []
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * GET /api/invoices/:id/noa
+ * Returns Notice of Assignment (NoA) queue status and details for an invoice.
+ * Parameter :id represents the numeric Soroban on_chain_id (or client_ref via query parameter ?client_ref=...).
+ */
+app.get('/api/invoices/:id/noa', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const clientRefQuery = req.query.client_ref;
+
+    const cleanId = String(id).replace('INV-', '');
+    const numericId = Number(cleanId);
+    const isValidNumericId = !isNaN(numericId) && numericId > 0;
+
+    let query = supabase.from('notice_assignment_queue').select('*');
+
+    if (isValidNumericId) {
+      query = query.eq('invoice_id', numericId);
+    } else if (clientRefQuery && typeof clientRefQuery === 'string') {
+      query = query.eq('client_ref', clientRefQuery);
+    } else if (typeof id === 'string' && id.startsWith('clt_ref_')) {
+      query = query.eq('client_ref', id);
+    } else {
+      return res.status(400).json({
+        error: 'Bad Request',
+        message: 'A valid numeric on_chain_id parameter or client_ref query is required.'
+      });
+    }
+
+    const { data: queueItems, error } = await query.order('created_at', { ascending: false }).limit(1);
+
+    if (error) {
+      return res.status(500).json({ error: 'Internal Server Error', message: error.message });
+    }
+
+    if (!queueItems || queueItems.length === 0) {
+      return res.status(200).json({
+        success: true,
+        status: 'NONE',
+        noa: null
+      });
+    }
+
+    const item = queueItems[0];
+    const status = item.status; // DISCOVERED | PROCESSING | PROCESSED | FAILED | FAILED_PERMANENT
+
+    let noaPayload = null;
+    if (status === 'PROCESSED') {
+      noaPayload = {
+        reference: `INV-${item.invoice_id}`,
+        processedAt: item.processed_at || item.updated_at,
+        memo: `INV-${item.invoice_id}`
+      };
+    }
+
+    return res.status(200).json({
+      success: true,
+      status,
+      noa: noaPayload,
+      retry_count: item.retry_count || 0
     });
   } catch (err) {
     next(err);
