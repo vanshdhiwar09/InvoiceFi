@@ -24,19 +24,32 @@ test('Wallet Abstraction Unit Tests', async (t) => {
   });
 
   await t.test('3. User Rejection Error Normalization', () => {
-    const errFreighter = normalizeWalletError('User rejected the transaction', 'freighter');
+    const errFreighter = normalizeWalletError('User rejected request', 'freighter');
     assert.equal(errFreighter.category, 'USER_REJECTED');
-    assert.match(errFreighter.message, /Freighter request was rejected/);
+    assert.equal(errFreighter.walletId, 'freighter');
+    assert.equal(errFreighter.message, 'Freighter request was rejected. You can try again.');
 
-    const errAlbedo = normalizeWalletError({ message: 'User closed popup' }, 'albedo');
+    const errAlbedo = normalizeWalletError({ message: 'User closed the window' }, 'albedo');
     assert.equal(errAlbedo.category, 'USER_REJECTED');
-    assert.match(errAlbedo.message, /Albedo request was rejected/);
+    assert.equal(errAlbedo.walletId, 'albedo');
+    assert.equal(errAlbedo.message, 'Albedo request was rejected. You can try again.');
+
+    const errXbull = normalizeWalletError('Operation canceled by user', 'xbull');
+    assert.equal(errXbull.category, 'USER_REJECTED');
+    assert.equal(errXbull.walletId, 'xbull');
+    assert.equal(errXbull.message, 'xBull request was rejected. You can try again.');
   });
 
   await t.test('4. Network Mismatch Error Normalization', () => {
-    const errNetwork = normalizeWalletError('Wallet is configured for Mainnet', 'xbull');
+    const errNetwork = normalizeWalletError('Wallet is configured for Mainnet', 'freighter');
     assert.equal(errNetwork.category, 'NETWORK_MISMATCH');
-    assert.match(errNetwork.message, /Switch your xBull wallet to Stellar Testnet/);
+    assert.equal(errNetwork.walletId, 'freighter');
+    assert.equal(errNetwork.message, 'Switch your wallet to Stellar Testnet to continue.');
+
+    const errPublicNet = normalizeWalletError('Public Global Stellar Network', 'albedo');
+    assert.equal(errPublicNet.category, 'NETWORK_MISMATCH');
+    assert.equal(errPublicNet.walletId, 'albedo');
+    assert.equal(errPublicNet.message, 'Switch your wallet to Stellar Testnet to continue.');
   });
 
   await t.test('5. Wallet Not Found Error Normalization', () => {

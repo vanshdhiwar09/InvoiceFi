@@ -33,16 +33,40 @@ export function normalizeWalletError(err: unknown, walletId: WalletId): Normaliz
   const rawMsg = typeof err === 'string' ? err : (err && typeof err === 'object' && 'message' in err ? String((err as { message: unknown }).message) : String(err));
   const lowerMsg = rawMsg.toLowerCase();
 
+  // Network Mismatch Check (Highest Priority)
+  if (
+    lowerMsg.includes('network') ||
+    lowerMsg.includes('mainnet') ||
+    lowerMsg.includes('testnet') ||
+    lowerMsg.includes('mismatch') ||
+    lowerMsg.includes('public global') ||
+    lowerMsg.includes('switch your')
+  ) {
+    return {
+      category: 'NETWORK_MISMATCH',
+      message: `Switch your wallet to Stellar Testnet to continue.`,
+      walletId,
+      providerError: err
+    };
+  }
+
+  // Provider Rejection Check
   if (
     lowerMsg.includes('reject') ||
     lowerMsg.includes('cancel') ||
     lowerMsg.includes('decline') ||
     lowerMsg.includes('denied') ||
-    lowerMsg.includes('user closed')
+    lowerMsg.includes('user closed') ||
+    lowerMsg.includes('closed the window') ||
+    lowerMsg.includes('closed') ||
+    lowerMsg.includes('dismissed') ||
+    lowerMsg.includes('refused') ||
+    lowerMsg.includes('abort')
   ) {
     return {
       category: 'USER_REJECTED',
       message: `${providerName} request was rejected. You can try again.`,
+      walletId,
       providerError: err
     };
   }
@@ -57,19 +81,7 @@ export function normalizeWalletError(err: unknown, walletId: WalletId): Normaliz
     return {
       category: 'WALLET_NOT_FOUND',
       message: `${providerName} is not installed or available in this browser.`,
-      providerError: err
-    };
-  }
-
-  if (
-    lowerMsg.includes('network') ||
-    lowerMsg.includes('mainnet') ||
-    lowerMsg.includes('testnet') ||
-    lowerMsg.includes('mismatch')
-  ) {
-    return {
-      category: 'NETWORK_MISMATCH',
-      message: `Switch your ${providerName} wallet to Stellar Testnet to continue.`,
+      walletId,
       providerError: err
     };
   }
@@ -78,6 +90,7 @@ export function normalizeWalletError(err: unknown, walletId: WalletId): Normaliz
     return {
       category: 'INSUFFICIENT_BALANCE',
       message: `Insufficient XLM balance in ${providerName} to complete transaction.`,
+      walletId,
       providerError: err
     };
   }
@@ -85,6 +98,7 @@ export function normalizeWalletError(err: unknown, walletId: WalletId): Normaliz
   return {
     category: 'CONNECTION_FAILED',
     message: `Unable to connect to ${providerName}: ${rawMsg}`,
+    walletId,
     providerError: err
   };
 }

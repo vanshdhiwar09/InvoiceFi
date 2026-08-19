@@ -118,28 +118,46 @@ export const WalletConnectSheet: React.FC<WalletConnectSheetProps> = ({
               </div>
             </div>
           ) : (
-            /* Wallet Row Priority Stack: 1. Freighter, 2. Albedo, 3. xBull */
-            <div className="flex flex-col gap-3">
-              {SUPPORTED_WALLETS.map(w => {
-                const isRowConnecting = isConnecting && connectingWalletId === w.id;
-                const isRowConnected = isConnected && walletId === w.id;
-                const rowError = error && (connectingWalletId === w.id || walletId === w.id) ? error.message : null;
+            <>
+              {/* Top-Level Normalized Error Alert Banner */}
+              {error && (
+                <div className="p-3.5 rounded-xl bg-[#FCE7EA] border border-[#D6304A]/30 text-[#D6304A] text-xs font-medium space-y-1 shadow-2xs">
+                  <div className="flex items-center gap-2 font-bold uppercase tracking-wider text-[11px] text-[#D6304A]">
+                    <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0" />
+                    </svg>
+                    {error.category === 'NETWORK_MISMATCH' ? 'Network Mismatch' : 'Connection Failure'}
+                  </div>
+                  <p className="text-xs text-[#D6304A] leading-relaxed">
+                    {error.message}
+                  </p>
+                </div>
+              )}
 
-                return (
-                  <ButtonWallet
-                    key={w.id}
-                    walletId={w.id}
-                    name={w.name}
-                    connectingText={w.connectingText}
-                    isConnecting={isRowConnecting}
-                    isConnected={isRowConnected}
-                    error={rowError}
-                    disabled={isConnecting && !isRowConnecting}
-                    onClick={() => handleWalletSelect(w.id)}
-                  />
-                );
-              })}
-            </div>
+              {/* Wallet Row Priority Stack: 1. Freighter, 2. Albedo, 3. xBull */}
+              <div className="flex flex-col gap-3">
+                {SUPPORTED_WALLETS.map(w => {
+                  const isRowConnecting = isConnecting && connectingWalletId === w.id;
+                  const isRowConnected = isConnected && walletId === w.id;
+                  const isRowError = error && error.walletId === w.id;
+                  const rowError = isRowError ? error.message : null;
+
+                  return (
+                    <ButtonWallet
+                      key={w.id}
+                      walletId={w.id}
+                      name={w.name}
+                      connectingText={w.connectingText}
+                      isConnecting={isRowConnecting}
+                      isConnected={isRowConnected}
+                      error={rowError}
+                      disabled={isConnecting && !isRowConnecting}
+                      onClick={() => handleWalletSelect(w.id)}
+                    />
+                  );
+                })}
+              </div>
+            </>
           )}
         </div>
 

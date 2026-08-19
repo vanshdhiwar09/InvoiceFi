@@ -74,6 +74,27 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         throw new Error(`No public key returned by ${providerInfo?.name || targetWalletId}`);
       }
 
+      // Network Check (Phase 6I QA Fix)
+      try {
+        const netDetails = await Kit.getNetwork();
+        if (netDetails) {
+          const netName = String(netDetails.network || '').toUpperCase();
+          const netPass = String(netDetails.networkPassphrase || '');
+
+          const isMainnet = netName === 'PUBLIC' || netName === 'MAINNET' || netPass.includes('Public Global Stellar Network');
+          const isTestnet = netName === 'TESTNET' || netPass.includes('Test SDF Network');
+
+          if (isMainnet || (netName && !isTestnet)) {
+            throw new Error('Switch your wallet to Stellar Testnet to continue.');
+          }
+        }
+      } catch (netErr: unknown) {
+        const netMsg = netErr instanceof Error ? netErr.message : String(netErr);
+        if (netMsg.includes('Switch your') || netMsg.includes('Testnet') || netMsg.includes('PUBLIC') || netMsg.includes('MAINNET')) {
+          throw new Error('Switch your wallet to Stellar Testnet to continue.');
+        }
+      }
+
       const formatted = cleanAddress.trim();
       setAddress(formatted);
       setWalletId(targetWalletId);

@@ -11,6 +11,7 @@ export type ErrorCategory =
 export interface NormalizedWalletError {
   category: ErrorCategory;
   message: string;
+  walletId?: WalletId;
   providerError?: unknown;
 }
 
