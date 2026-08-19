@@ -1,4 +1,4 @@
-import { track } from '@vercel/analytics';
+import { track } from '@vercel/analytics/react';
 
 /**
  * Level 4 Analytics Helper (InvoiceFi Phase 6H)
