@@ -22,6 +22,7 @@ import {
   updateInvoiceToClosed,
   fetchBackendNoAStatus
 } from '@/lib/invoices/invoiceService';
+import { trackInvoiceFunded } from '@/lib/analytics';
 import {
   executeInvestTx,
   executeRepayTx,
@@ -219,6 +220,9 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
 
         // Sync off-chain database status to FUNDED
         updateInvoiceToFunded(updated.id, publicKey, updated.advanceAmount);
+
+        // Track confirmed funding custom event (Phase 6H)
+        trackInvoiceFunded();
 
         // Initiate NoA backend check
         const noaRes = await fetchBackendNoAStatus(targetOnChainId, updated.clientRef);

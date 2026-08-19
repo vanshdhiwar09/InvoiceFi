@@ -12,6 +12,7 @@ import {
   SUPPORTED_WALLETS,
   normalizeWalletError
 } from './walletAdapter';
+import { trackWalletConnected } from '@/lib/analytics';
 
 const STORAGE_KEY = 'invoicefi_connected_wallet_id';
 
@@ -81,6 +82,9 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       if (typeof window !== 'undefined') {
         localStorage.setItem(STORAGE_KEY, targetWalletId);
       }
+
+      // Track successful wallet connection event (Phase 6H)
+      trackWalletConnected(targetWalletId);
 
       return true;
     } catch (err: unknown) {

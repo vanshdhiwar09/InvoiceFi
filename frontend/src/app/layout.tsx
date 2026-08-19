@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { WalletProvider } from '@/lib/wallet/WalletContext';
+import { Analytics } from '@vercel/analytics/react';
 
 export const metadata: Metadata = {
   title: 'InvoiceFi — Stellar Invoice Tokenization Protocol',
@@ -14,6 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <WalletProvider>
           {children}
         </WalletProvider>
+        <Analytics />
       </body>
     </html>
   );

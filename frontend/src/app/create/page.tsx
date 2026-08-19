@@ -12,6 +12,7 @@ import { useWallet } from '@/lib/wallet/WalletContext';
 import { savePrivateInvoiceMetadata, updateOnChainMapping, updateTokenizedStatus } from '@/lib/invoices/metadataClient';
 import { executeCreateInvoiceTx, executeTokenizeInvoiceTx, INVOICE_CONTRACT_ID } from '@/lib/invoices/sorobanClient';
 import { addCreatedInvoice, updateInvoiceToTokenized, formatXlm } from '@/lib/invoices/invoiceService';
+import { trackInvoiceCreated } from '@/lib/analytics';
 
 export default function CreateInvoicePage() {
   const router = useRouter();
@@ -214,6 +215,9 @@ export default function CreateInvoicePage() {
         txHash: txResult.txHash,
         description: `B2B Receivable issued to ${clientName.trim()}`
       });
+
+      // Track confirmed invoice creation custom event (Phase 6H)
+      trackInvoiceCreated();
 
       // 6. Transition state machine to Created Success View
       setFlowState('created');
