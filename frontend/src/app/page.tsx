@@ -103,7 +103,7 @@ export default function HomePage() {
             <div className="space-y-1 pt-1 border-t border-[#1E293B]">
               <p className="text-xs text-[#CBD5E1]">Target Receivable Value</p>
               <div className="flex items-baseline justify-between">
-                <p className="font-mono text-2xl sm:text-3xl font-light text-white">$50,000.00</p>
+                <p className="font-mono text-2xl sm:text-3xl font-light text-white">50,000 XLM</p>
                 <span className="font-mono text-[11px] sm:text-xs text-[#34D399] font-semibold bg-[#34D399]/10 px-2.5 py-0.5 sm:py-1 rounded-full border border-[#34D399]/30">90% Funded</span>
               </div>
             </div>
@@ -116,7 +116,7 @@ export default function HomePage() {
             <div className="grid grid-cols-2 gap-3 pt-1 text-xs">
               <div className="bg-[#1E293B]/70 p-2.5 sm:p-3 rounded-2xl border border-[#334155]/50">
                 <p className="text-[#CBD5E1]">Advance Rate</p>
-                <p className="font-mono text-xs sm:text-sm font-semibold text-white mt-0.5">85% ($42.5k)</p>
+                <p className="font-mono text-xs sm:text-sm font-semibold text-white mt-0.5">85% (42.5k XLM)</p>
               </div>
               <div className="bg-[#1E293B]/70 p-2.5 sm:p-3 rounded-2xl border border-[#334155]/50">
                 <p className="text-[#CBD5E1]">Illustrative Return</p>

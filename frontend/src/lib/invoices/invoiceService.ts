@@ -199,18 +199,17 @@ export function filterInvoices(invoices: Invoice[], statusFilter: string, nowStr
 }
 
 /**
- * Formats monetary amounts in standard USD currency string.
+ * Formats monetary amounts in native XLM currency string.
  */
 export function formatCurrency(amount: number): string {
   if (amount === undefined || amount === null || isNaN(amount)) {
-    return '$0.00';
+    return '0 XLM';
   }
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
+  const formatted = new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 0,
     maximumFractionDigits: 2
   }).format(amount);
+  return `${formatted} XLM`;
 }
 
 /**

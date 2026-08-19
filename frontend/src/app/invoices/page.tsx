@@ -120,7 +120,7 @@ export default function DashboardInvoicesPage() {
         )}
 
         {/* Financial Summary Cards Section */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {loading ? (
             <>
               <Skeleton className="h-28 w-full" />
@@ -130,33 +130,33 @@ export default function DashboardInvoicesPage() {
             </>
           ) : (
             <>
-              <Card className="space-y-2">
+              <Card className="space-y-2 overflow-hidden min-w-0">
                 <p className="text-xs font-medium text-[#647087] uppercase tracking-wider">Active Invoices</p>
-                <p className="font-mono tnum text-2xl sm:text-3xl font-bold text-[#0D1B2E]">
+                <p className="font-mono tnum text-xl sm:text-2xl lg:text-3xl font-bold text-[#0D1B2E] truncate">
                   {summary.activeInvoices}
                 </p>
                 <p className="text-[11px] text-[#647087]">Of {summary.totalInvoices} total registered</p>
               </Card>
 
-              <Card className="space-y-2">
+              <Card className="space-y-2 overflow-hidden min-w-0">
                 <p className="text-xs font-medium text-[#647087] uppercase tracking-wider">Total Face Value</p>
-                <p className="font-mono tnum text-2xl sm:text-3xl font-bold text-[#0D1B2E]">
+                <p className="font-mono tnum text-xl sm:text-2xl lg:text-3xl font-bold text-[#0D1B2E] truncate" title={formatCurrency(summary.totalFaceValue)}>
                   {formatCurrency(summary.totalFaceValue)}
                 </p>
                 <p className="text-[11px] text-[#647087]">Gross receivables value</p>
               </Card>
 
-              <Card className="space-y-2">
+              <Card className="space-y-2 overflow-hidden min-w-0">
                 <p className="text-xs font-medium text-[#647087] uppercase tracking-wider">Total Funded</p>
-                <p className="font-mono tnum text-2xl sm:text-3xl font-bold text-[#4C3AFF]">
+                <p className="font-mono tnum text-xl sm:text-2xl lg:text-3xl font-bold text-[#4C3AFF] truncate" title={formatCurrency(summary.totalFundedValue)}>
                   {formatCurrency(summary.totalFundedValue)}
                 </p>
                 <p className="text-[11px] text-[#647087]">Liquidity committed</p>
               </Card>
 
-              <Card className="space-y-2">
+              <Card className="space-y-2 overflow-hidden min-w-0">
                 <p className="text-xs font-medium text-[#647087] uppercase tracking-wider">Total Repaid</p>
-                <p className="font-mono tnum text-2xl sm:text-3xl font-bold text-[#0F6E5C]">
+                <p className="font-mono tnum text-xl sm:text-2xl lg:text-3xl font-bold text-[#0F6E5C] truncate" title={formatCurrency(summary.totalRepaidValue)}>
                   {formatCurrency(summary.totalRepaidValue)}
                 </p>
                 <p className="text-[11px] text-[#647087]">Settled to date</p>

@@ -125,9 +125,9 @@ test('Invoice Service Abstraction Unit Tests', async (t) => {
   });
 
   await t.test('4. formatCurrency formats monetary precision correctly', () => {
-    assert.equal(formatCurrency(12400), '$12,400.00');
-    assert.equal(formatCurrency(0), '$0.00');
-    assert.equal(formatCurrency(500.5), '$500.50');
+    assert.equal(formatCurrency(12400), '12,400 XLM');
+    assert.equal(formatCurrency(0), '0 XLM');
+    assert.equal(formatCurrency(500.5), '500.5 XLM');
   });
 
   await t.test('5. Investor Funding Action Resolution Scenarios (Prompt Section 9)', () => {
