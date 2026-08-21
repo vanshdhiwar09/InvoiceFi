@@ -17,8 +17,13 @@ import {
   filterInvoices,
   deriveInvoiceStatus,
   formatCurrency,
-  formatDate
+  formatDate,
+  mapSorobanStatusToLifecycleState,
+  updateInvoiceToClosed,
+  updateInvoiceToRepaid,
+  updateInvoiceToFunded
 } from '@/lib/invoices/invoiceService';
+import { checkOnChainInvoiceStatus } from '@/lib/invoices/sorobanClient';
 
 const ITEMS_PER_PAGE = 5;
 
@@ -40,8 +45,45 @@ export default function DashboardInvoicesPage() {
       setError(null);
       try {
         const data = await getInvoices(publicKey || undefined);
+        
+        // Reconcile off-chain records with Authoritative Soroban Smart Contract State
+        const reconciled = await Promise.all(
+          data.map(async (inv) => {
+            const targetOnChainId = inv.onChainId || Number(inv.id.replace('INV-', ''));
+            if (!isNaN(targetOnChainId) && targetOnChainId > 0) {
+              inv.onChainId = targetOnChainId;
+              try {
+                const check = await checkOnChainInvoiceStatus(targetOnChainId);
+                if (check && check.invoiceData) {
+                  const invData = check.invoiceData as { status?: number | string; investor?: string };
+                  const canonicalState = mapSorobanStatusToLifecycleState(invData.status);
+                  inv.lifecycleState = canonicalState;
+
+                  if (invData.investor) {
+                    inv.investorWallet = String(invData.investor);
+                  }
+
+                  if (canonicalState === 'Funded') {
+                    inv.fundedAmount = inv.advanceAmount;
+                    updateInvoiceToFunded(inv.id, inv.investorWallet || '', inv.advanceAmount);
+                  } else if (canonicalState === 'Repaid') {
+                    inv.fundedAmount = inv.advanceAmount;
+                    updateInvoiceToRepaid(inv.id);
+                  } else if (canonicalState === 'Closed') {
+                    inv.fundedAmount = inv.advanceAmount;
+                    updateInvoiceToClosed(inv.id);
+                  }
+                }
+              } catch (rpcErr) {
+                console.warn(`[Dashboard Reconciliation] RPC check skipped for INV-${targetOnChainId}:`, rpcErr);
+              }
+            }
+            return inv;
+          })
+        );
+
         if (isMounted) {
-          setInvoices(data);
+          setInvoices(reconciled);
         }
       } catch {
         if (isMounted) {
@@ -78,7 +120,7 @@ export default function DashboardInvoicesPage() {
   const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, filteredInvoices.length);
   const paginatedInvoices = filteredInvoices.slice(startIndex, endIndex);
 
-  const filterTabs = ['All', 'Open', 'Funding', 'Funded', 'Repaid', 'Overdue'];
+  const filterTabs = ['All', 'Created', 'Tokenized', 'Funded', 'Repaid', 'Closed', 'Overdue'];
 
   return (
     <AppShell activeRoute="invoices">

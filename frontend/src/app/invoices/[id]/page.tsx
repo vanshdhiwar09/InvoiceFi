@@ -20,7 +20,8 @@ import {
   updateInvoiceToFunded,
   updateInvoiceToRepaid,
   updateInvoiceToClosed,
-  fetchBackendNoAStatus
+  fetchBackendNoAStatus,
+  mapSorobanStatusToLifecycleState
 } from '@/lib/invoices/invoiceService';
 import { trackInvoiceFunded } from '@/lib/analytics';
 import {
@@ -82,22 +83,20 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
               const check = await checkOnChainInvoiceStatus(targetOnChainId);
               if (check.invoiceData) {
                 const invData = check.invoiceData as { status?: number | string; investor?: string };
-                const rawStatus = typeof invData.status === 'number' ? invData.status : Number(invData.status);
+                const canonicalState = mapSorobanStatusToLifecycleState(invData.status);
+                found.lifecycleState = canonicalState;
                 
                 if (invData.investor) {
                   found.investorWallet = String(invData.investor);
                 }
 
-                if (rawStatus === 2 || String(invData.status) === 'Funded') {
-                  found.lifecycleState = 'Funded';
+                if (canonicalState === 'Funded') {
                   found.fundedAmount = found.advanceAmount;
                   updateInvoiceToFunded(found.id, found.investorWallet || '', found.advanceAmount);
-                } else if (rawStatus === 3 || String(invData.status) === 'Repaid') {
-                  found.lifecycleState = 'Repaid';
+                } else if (canonicalState === 'Repaid') {
                   found.fundedAmount = found.advanceAmount;
                   updateInvoiceToRepaid(found.id);
-                } else if (rawStatus === 4 || String(invData.status) === 'Closed') {
-                  found.lifecycleState = 'Closed';
+                } else if (canonicalState === 'Closed') {
                   found.fundedAmount = found.advanceAmount;
                   updateInvoiceToClosed(found.id);
                 }

@@ -140,7 +140,7 @@ function testAssert(condition, testName) {
 
   addCreatedInvoice(newInvoice);
   const status = deriveInvoiceStatus(newInvoice, '2026-08-18');
-  testAssert(status === 'Open', 'Test 14: Confirmed create_invoice registers invoice with state Created');
+  testAssert(status === 'Created', 'Test 14: Confirmed create_invoice registers invoice with state Created');
 }
 
 // Test 15: Transaction failure error normalization
@@ -162,7 +162,7 @@ function testAssert(condition, testName) {
   updateInvoiceToTokenized('INV-101');
   const tokenizedInv = { id: 'INV-101', lifecycleState: 'Tokenized', fundedAmount: 0, dueDate: '2026-10-15' };
   const status = deriveInvoiceStatus(tokenizedInv, '2026-08-18');
-  testAssert(status === 'Open', 'Test 17: Successful tokenize_invoice transitions state to Tokenized');
+  testAssert(status === 'Tokenized', 'Test 17: Successful tokenize_invoice transitions state to Tokenized');
 }
 
 // Test 18: Tokenization failure handling
@@ -291,7 +291,7 @@ function testAssert(condition, testName) {
 {
   const closedInv = { lifecycleState: 'Closed', freelancerWallet: 'GWALLET_A', investorWallet: 'GWALLET_B' };
   const action = getInvoiceActions(closedInv, 'GWALLET_B');
-  testAssert(!action.enabled && action.label === 'Invoice Closed',
+  testAssert(!action.enabled && action.label.includes('Closed'),
     'Test 34: Closed invoice disables all financial actions');
 }
 

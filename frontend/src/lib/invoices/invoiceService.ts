@@ -125,6 +125,53 @@ export function updateInvoiceToClosed(invoiceId: string): boolean {
 }
 
 /**
+ * Canonical Status Mapper (InvoiceFi Phase 6I)
+ * Authoritative mapping from Soroban contract on-chain status code to application lifecycle state.
+ * 
+ * Soroban Status Codes:
+ * 0 = Created
+ * 1 = Tokenized
+ * 2 = Funded
+ * 3 = Repaid
+ * 4 = Closed
+ * 5 = Cancelled
+ */
+export function mapSorobanStatusToLifecycleState(
+  rawStatus: number | string | { name?: string } | undefined | null
+): InvoiceLifecycleState {
+  if (rawStatus === undefined || rawStatus === null) {
+    return 'Created';
+  }
+
+  let code: number | string = rawStatus as number | string;
+  if (typeof rawStatus === 'object' && rawStatus !== null && 'name' in rawStatus) {
+    code = (rawStatus as { name?: string }).name || 0;
+  }
+
+  const num = Number(code);
+  if (!isNaN(num)) {
+    switch (num) {
+      case 0: return 'Created';
+      case 1: return 'Tokenized';
+      case 2: return 'Funded';
+      case 3: return 'Repaid';
+      case 4: return 'Closed';
+      case 5: return 'Cancelled';
+    }
+  }
+
+  const str = String(code).trim().toLowerCase();
+  if (str === 'created' || str === '0') return 'Created';
+  if (str === 'tokenized' || str === '1') return 'Tokenized';
+  if (str === 'funded' || str === '2') return 'Funded';
+  if (str === 'repaid' || str === '3') return 'Repaid';
+  if (str === 'closed' || str === '4') return 'Closed';
+  if (str === 'cancelled' || str === 'canceled' || str === '5') return 'Cancelled';
+
+  return 'Created';
+}
+
+/**
  * Derives the UI presentation status from the normalized Invoice object.
  * 'Overdue' is a UI-derived presentation state only when dueDate < currentDate and not settled.
  */
@@ -135,7 +182,10 @@ export function deriveInvoiceStatus(invoice: Invoice, nowString?: string): Invoi
   if (invoice.lifecycleState === 'Cancelled') {
     return 'Cancelled';
   }
-  if (invoice.lifecycleState === 'Repaid' || invoice.lifecycleState === 'Closed') {
+  if (invoice.lifecycleState === 'Closed') {
+    return 'Closed';
+  }
+  if (invoice.lifecycleState === 'Repaid') {
     return 'Repaid';
   }
   if (invoice.lifecycleState === 'Funded') {
@@ -148,10 +198,10 @@ export function deriveInvoiceStatus(invoice: Invoice, nowString?: string): Invoi
   }
 
   if (invoice.lifecycleState === 'Tokenized') {
-    return invoice.fundedAmount > 0 ? 'Funding' : 'Open';
+    return invoice.fundedAmount > 0 ? 'Funding' : 'Tokenized';
   }
 
-  return 'Open';
+  return 'Created';
 }
 
 /**
@@ -168,7 +218,7 @@ export function getInvoiceSummary(invoices: Invoice[], nowString?: string): Invo
     totalFaceValue += inv.faceValue;
     totalFundedValue += inv.fundedAmount;
 
-    if (status === 'Repaid') {
+    if (status === 'Repaid' || status === 'Closed') {
       totalRepaidValue += (inv.repaymentAmount || inv.faceValue);
     } else if (status !== 'Cancelled') {
       activeInvoices += 1;
@@ -423,6 +473,15 @@ export function getInvoiceActions(invoice: Invoice, walletAddress?: string): Inv
         description: 'Disburse principal plus return to investor wallet.',
         enabled: true,
         role: 'investor'
+      };
+
+    case 'Closed':
+      return {
+        actionKey: 'view',
+        label: 'Settlement Complete — Invoice Closed',
+        description: 'Invoice lifecycle fully completed and closed on Stellar Testnet.',
+        enabled: false,
+        role: 'viewer'
       };
 
     default:

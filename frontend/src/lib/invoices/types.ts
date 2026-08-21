@@ -14,10 +14,13 @@ export type InvoiceLifecycleState =
 
 // UI Presentation Status (Includes UI-derived 'Overdue' state)
 export type InvoiceStatus =
+  | 'Created'
+  | 'Tokenized'
   | 'Open'
   | 'Funding'
   | 'Funded'
   | 'Repaid'
+  | 'Closed'
   | 'Overdue'
   | 'Cancelled';
 

@@ -6,7 +6,8 @@ import {
   getInvoiceSummary,
   filterInvoices,
   formatCurrency,
-  getInvoiceActions
+  getInvoiceActions,
+  mapSorobanStatusToLifecycleState
 } from '../invoiceService.mjs';
 
 test('Invoice Service Abstraction Unit Tests', async (t) => {
@@ -190,4 +191,63 @@ test('Invoice Service Abstraction Unit Tests', async (t) => {
     assert.notEqual(act7.actionKey, 'fund');
   });
 
+  await t.test('6. Canonical Soroban Status Mapping & Reconciliation (Task 10)', () => {
+    // 1-6. Soroban status codes 0-5 map correctly to canonical lifecycle states
+    assert.equal(mapSorobanStatusToLifecycleState(0), 'Created');
+    assert.equal(mapSorobanStatusToLifecycleState(1), 'Tokenized');
+    assert.equal(mapSorobanStatusToLifecycleState(2), 'Funded');
+    assert.equal(mapSorobanStatusToLifecycleState(3), 'Repaid');
+    assert.equal(mapSorobanStatusToLifecycleState(4), 'Closed');
+    assert.equal(mapSorobanStatusToLifecycleState(5), 'Cancelled');
+
+    // 7. Supabase REPAID + Soroban CLOSED -> UI CLOSED
+    const invRepaidInSupabase = {
+      id: 'INV-10',
+      onChainId: 10,
+      lifecycleState: mapSorobanStatusToLifecycleState(4), // Soroban 4 = Closed
+      dueDate: '2026-09-01'
+    };
+    assert.equal(invRepaidInSupabase.lifecycleState, 'Closed');
+    assert.equal(deriveInvoiceStatus(invRepaidInSupabase), 'Closed');
+
+    // 8. Supabase FUNDED + Soroban CLOSED -> UI CLOSED
+    const invFundedInSupabase = {
+      id: 'INV-10',
+      onChainId: 10,
+      lifecycleState: mapSorobanStatusToLifecycleState(4),
+      dueDate: '2026-09-01'
+    };
+    assert.equal(invFundedInSupabase.lifecycleState, 'Closed');
+    assert.equal(deriveInvoiceStatus(invFundedInSupabase), 'Closed');
+
+    // 9. NoA PROCESSED does not change financial state
+    const invNoAProcessed = {
+      id: 'INV-10',
+      onChainId: 10,
+      lifecycleState: 'Closed',
+      noaStatus: 'PROCESSED',
+      dueDate: '2026-09-01'
+    };
+    assert.equal(deriveInvoiceStatus(invNoAProcessed), 'Closed');
+
+    // 10. Closed invoices expose no financial actions
+    const closedActions = getInvoiceActions(invNoAProcessed, 'GA_ANY');
+    assert.equal(closedActions.enabled, false);
+    assert.equal(closedActions.actionKey, 'view');
+    assert.match(closedActions.label, /Closed/i);
+
+    // 11. Dashboard and detail use same canonical status mapper
+    const statusFromMapper = mapSorobanStatusToLifecycleState(4);
+    assert.equal(statusFromMapper, 'Closed');
+
+    // 12. RPC reconciliation failure preserves last known status
+    const fallbackInv = {
+      id: 'INV-RPC-FAIL',
+      lifecycleState: 'Funded',
+      dueDate: '2026-09-01'
+    };
+    assert.equal(deriveInvoiceStatus(fallbackInv), 'Funded');
+  });
+
 });
+

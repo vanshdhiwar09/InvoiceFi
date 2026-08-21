@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type InvoiceStatusType = 'Open' | 'Funding' | 'Funded' | 'Repaid' | 'Overdue' | 'Cancelled';
+export type InvoiceStatusType = 'Created' | 'Tokenized' | 'Open' | 'Funding' | 'Funded' | 'Repaid' | 'Closed' | 'Overdue' | 'Cancelled';
 
 export interface StatusPillProps {
   status: InvoiceStatusType | string;
@@ -11,10 +11,13 @@ export const StatusPill: React.FC<StatusPillProps> = ({ status, className = '' }
   const normalizedStatus = (status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()) as InvoiceStatusType;
 
   const styles: Record<string, string> = {
+    Created: 'bg-[#F5F8FB] text-[#647087] border border-[#E2E7EE]',
+    Tokenized: 'bg-[#DAD6FF]/60 text-[#4C3AFF] border border-[#7669FF]/30',
     Open: 'bg-[#F5F8FB] text-[#647087] border border-[#E2E7EE]',
     Funding: 'bg-[#DAD6FF]/60 text-[#4C3AFF] border border-[#7669FF]/30',
     Funded: 'bg-[#D7F0EA] text-[#0F6E5C] border border-[#0F6E5C]/20',
     Repaid: 'bg-[#E3F6EC] text-[#0E8F5A] border border-[#0E8F5A]/20',
+    Closed: 'bg-[#E3F6EC] text-[#0E8F5A] border border-[#0E8F5A]/20',
     Overdue: 'bg-[#FCE7EA] text-[#D6304A] border border-[#D6304A]/20',
     Cancelled: 'bg-[#FCE7EA] text-[#D6304A] border border-[#D6304A]/20'
   };
