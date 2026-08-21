@@ -18,50 +18,63 @@ async function discoverInvoiceFundedEvents({ startLedger, contractId, limit = 10
   const normalizedEvents = [];
   const seenEventIds = new Set();
 
+  let currentStartLedger = startLedger;
   let currentCursor = null;
   let pageCount = 0;
-  // Safety guard against infinite loops in RPC pagination
   const maxPages = 50;
+
+  let latestLedger = 0;
+  try {
+    latestLedger = await sorobanClient.getLatestLedgerSequence();
+  } catch (err) {
+    // Fallback if RPC getLatestLedger fails
+  }
 
   while (pageCount < maxPages) {
     let rawResponse;
     try {
       rawResponse = await sorobanClient.fetchRawContractEvents({
-        startLedger: currentCursor ? undefined : startLedger,
+        startLedger: currentCursor ? undefined : currentStartLedger,
         contractId: targetContractId,
         cursor: currentCursor,
         limit
       });
     } catch (err) {
       console.warn(`RPC event fetch warning on page ${pageCount + 1}: ${err.message}`);
-      // If error occurs on page 2+, return events collected from earlier pages cleanly
       break;
     }
 
-    if (!rawResponse || !Array.isArray(rawResponse.events) || rawResponse.events.length === 0) {
+    if (!rawResponse) {
       break;
     }
 
-    let newlyAddedOnPage = 0;
-    for (const rawEvent of rawResponse.events) {
+    const events = Array.isArray(rawResponse.events) ? rawResponse.events : [];
+    let maxLedgerInBatch = currentStartLedger;
+
+    for (const rawEvent of events) {
       const normalized = normalizeEvent(rawEvent, targetContractId);
       if (normalized && !seenEventIds.has(normalized.event_id)) {
         seenEventIds.add(normalized.event_id);
         normalizedEvents.push(normalized);
-        newlyAddedOnPage++;
+      }
+      if (rawEvent.ledger && Number(rawEvent.ledger) > maxLedgerInBatch) {
+        maxLedgerInBatch = Number(rawEvent.ledger);
       }
     }
 
     pageCount++;
 
-    // Pagination continuation check:
-    // If response provides no cursor, or if cursor hasn't changed, or if fewer events than limit were returned
     const nextCursor = rawResponse.cursor;
-    if (!nextCursor || nextCursor === currentCursor || rawResponse.events.length < limit) {
-      break;
+
+    // DO NOT terminate pagination merely because events.length < limit.
+    // Continue following nextCursor if nextCursor exists and has changed.
+    if (nextCursor && nextCursor !== currentCursor) {
+      currentCursor = nextCursor;
+      continue;
     }
 
-    currentCursor = nextCursor;
+    // Cursor pagination completed cleanly
+    break;
   }
 
   return normalizedEvents;

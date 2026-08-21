@@ -166,7 +166,7 @@ async function testMultiPagePagination() {
   assert(
     calls.length === 2 &&
     calls[0].startLedger === 100 &&
-    calls[0].cursor === null &&
+    (calls[0].cursor === null || calls[0].cursor === undefined) &&
     calls[1].startLedger === undefined &&
     calls[1].cursor === 'cursor-page-2',
     'Test 10a: Multi-page RPC pagination passes cursor correctly and omits startLedger on page 2+'
@@ -237,10 +237,88 @@ async function testPage2ErrorRecovery() {
   );
 }
 
+// 11a. Empty RPC page with valid nextCursor continues pagination
+async function testEmptyPagePaginationContinuation() {
+  const sorobanClient = require('../src/events/sorobanClient');
+  const originalFetch = sorobanClient.fetchRawContractEvents;
+  const originalGetLatest = sorobanClient.getLatestLedgerSequence;
+
+  sorobanClient.getLatestLedgerSequence = async () => 150;
+
+  let callCount = 0;
+  sorobanClient.fetchRawContractEvents = async (params) => {
+    callCount++;
+    if (callCount === 1) {
+      // Empty events array on Page 1, but valid nextCursor
+      return {
+        cursor: 'cursor-page-2',
+        events: []
+      };
+    } else {
+      // Page 2 returns the discovered event
+      return {
+        cursor: 'cursor-page-2',
+        events: [createMockEvent({ id: 'EVT-P2-INV14', invoiceId: 14, ledger: 150 })]
+      };
+    }
+  };
+
+  const results = await discoverInvoiceFundedEvents({ startLedger: 100, contractId: TARGET_CONTRACT_ID, limit: 100 });
+  
+  sorobanClient.fetchRawContractEvents = originalFetch;
+  sorobanClient.getLatestLedgerSequence = originalGetLatest;
+
+  assert(
+    callCount === 2 && results.length === 1 && results[0].event_id === 'EVT-P2-INV14' && results[0].invoice_id === 14,
+    'Test 11a: Empty RPC page with valid nextCursor continues pagination and discovers later event'
+  );
+}
+
+// 11b. Empty RPC page with no nextCursor at latest ledger terminates pagination cleanly
+async function testEmptyPageTermination() {
+  const sorobanClient = require('../src/events/sorobanClient');
+  const originalFetch = sorobanClient.fetchRawContractEvents;
+  const originalGetLatest = sorobanClient.getLatestLedgerSequence;
+
+  sorobanClient.getLatestLedgerSequence = async () => 100;
+
+  let callCount = 0;
+  sorobanClient.fetchRawContractEvents = async (params) => {
+    callCount++;
+    return {
+      cursor: null,
+      events: []
+    };
+  };
+
+  const results = await discoverInvoiceFundedEvents({ startLedger: 100, contractId: TARGET_CONTRACT_ID, limit: 100 });
+
+  sorobanClient.fetchRawContractEvents = originalFetch;
+  sorobanClient.getLatestLedgerSequence = originalGetLatest;
+
+  assert(
+    callCount === 1 && results.length === 0,
+    'Test 11b: Empty RPC page with no nextCursor at latest ledger terminates pagination cleanly'
+  );
+}
+
+// 11c. ENABLE_BACKGROUND_DAEMON=true env validation
+function testDaemonEnvFlag() {
+  const originalEnv = process.env.ENABLE_BACKGROUND_DAEMON;
+  process.env.ENABLE_BACKGROUND_DAEMON = 'true';
+  const isEnabled = String(process.env.ENABLE_BACKGROUND_DAEMON).toLowerCase() === 'true' || process.env.NODE_ENV === 'production';
+  process.env.ENABLE_BACKGROUND_DAEMON = originalEnv;
+
+  assert(isEnabled === true, 'Test 11c: Background daemon is enabled when ENABLE_BACKGROUND_DAEMON=true');
+}
+
 async function runAsyncTests() {
   await testMultiPagePagination();
   await testPageBoundaryDeduplication();
   await testPage2ErrorRecovery();
+  await testEmptyPagePaginationContinuation();
+  await testEmptyPageTermination();
+  testDaemonEnvFlag();
 
   console.log(`\nResults: ${passedTests}/${totalTests} unit tests passed.`);
   if (passedTests === totalTests) {

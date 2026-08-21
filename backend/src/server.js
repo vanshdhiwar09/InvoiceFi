@@ -9,7 +9,8 @@ const server = app.listen(config.port, () => {
   console.log(`[${new Date().toISOString()}] Soroban Contract ID: ${config.invoiceContractId || 'N/A'}`);
 
   // Start background daemon (event ingestion + queue worker + safe checkpointing)
-  if (process.env.NODE_ENV === 'production' || process.env.ENABLE_BACKGROUND_DAEMON === 'true') {
+  const isDaemonEnabled = String(process.env.ENABLE_BACKGROUND_DAEMON).toLowerCase() === 'true' || process.env.NODE_ENV === 'production';
+  if (isDaemonEnabled) {
     startDaemon(10000);
   } else {
     console.log(`[${new Date().toISOString()}] Background daemon paused (Set ENABLE_BACKGROUND_DAEMON=true or NODE_ENV=production to run continuous daemon loop).`);

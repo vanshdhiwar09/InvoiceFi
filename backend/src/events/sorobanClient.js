@@ -39,11 +39,14 @@ async function fetchRawContractEvents({ startLedger, contractId, cursor, limit =
     limit
   };
 
-  // Soroban RPC semantics: Pass cursor in pagination option, OR startLedger, but NOT both together
+  // Soroban RPC semantics: Pass cursor in pagination option, or startLedger if positive
   if (cursor) {
     options.pagination = { cursor };
-  } else if (startLedger !== undefined && startLedger !== null) {
-    options.startLedger = startLedger;
+    if (startLedger !== undefined && startLedger !== null && Number(startLedger) > 0) {
+      options.startLedger = Number(startLedger);
+    }
+  } else if (startLedger !== undefined && startLedger !== null && Number(startLedger) > 0) {
+    options.startLedger = Number(startLedger);
   }
 
   return await rpcServer.getEvents(options);
