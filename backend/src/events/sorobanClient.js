@@ -39,12 +39,11 @@ async function fetchRawContractEvents({ startLedger, contractId, cursor, limit =
     limit
   };
 
-  // Soroban RPC semantics: Pass cursor in pagination option, or startLedger if positive
+  // Stellar SDK Server.getEvents(request) expects top-level cursor or startLedger properties:
+  // - Initial page: { filters, startLedger, limit }
+  // - Cursor page: { filters, cursor, limit }
   if (cursor) {
-    options.pagination = { cursor };
-    if (startLedger !== undefined && startLedger !== null && Number(startLedger) > 0) {
-      options.startLedger = Number(startLedger);
-    }
+    options.cursor = cursor;
   } else if (startLedger !== undefined && startLedger !== null && Number(startLedger) > 0) {
     options.startLedger = Number(startLedger);
   }

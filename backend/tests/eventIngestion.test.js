@@ -302,6 +302,67 @@ async function testEmptyPageTermination() {
   );
 }
 
+// TEST A & TEST B: Verify Stellar SDK request object shapes for initial page vs cursor page
+async function testSdkRequestShapes() {
+  const sorobanClient = require('../src/events/sorobanClient');
+  const originalGetEvents = sorobanClient.rpcServer.getEvents;
+
+  let capturedOpts = null;
+  sorobanClient.rpcServer.getEvents = async (opts) => {
+    capturedOpts = opts;
+    return { events: [], cursor: 'mock-cursor-response' };
+  };
+
+  // TEST A: Initial request contains positive startLedger and no cursor
+  await sorobanClient.fetchRawContractEvents({ startLedger: 4220295 });
+  assert(
+    capturedOpts !== null &&
+    capturedOpts.startLedger === 4220295 &&
+    capturedOpts.cursor === undefined,
+    'TEST A: Initial request contains positive startLedger and omits cursor'
+  );
+
+  // TEST B: Second/cursor request contains top-level cursor and does NOT contain startLedger
+  await sorobanClient.fetchRawContractEvents({ cursor: 'valid-next-cursor-123' });
+  assert(
+    capturedOpts !== null &&
+    capturedOpts.cursor === 'valid-next-cursor-123' &&
+    capturedOpts.startLedger === undefined,
+    'TEST B: Second/cursor request contains top-level cursor and omits startLedger'
+  );
+
+  sorobanClient.rpcServer.getEvents = originalGetEvents;
+}
+
+// TEST D: Later page containing invoice_funded event is discovered cleanly
+async function testLaterPageDiscovery() {
+  const sorobanClient = require('../src/events/sorobanClient');
+  const originalFetch = sorobanClient.fetchRawContractEvents;
+
+  let callCount = 0;
+  sorobanClient.fetchRawContractEvents = async (params) => {
+    callCount++;
+    if (callCount === 1) {
+      return { cursor: 'cursor-page-2', events: [] };
+    } else if (callCount === 2) {
+      return { cursor: 'cursor-page-3', events: [] };
+    } else {
+      return {
+        cursor: 'cursor-page-3',
+        events: [createMockEvent({ id: 'EVT-INV-14', invoiceId: 14, ledger: 4260196 })]
+      };
+    }
+  };
+
+  const results = await discoverInvoiceFundedEvents({ startLedger: 4220295, contractId: TARGET_CONTRACT_ID, limit: 100 });
+  sorobanClient.fetchRawContractEvents = originalFetch;
+
+  assert(
+    results.length === 1 && results[0].event_id === 'EVT-INV-14' && results[0].invoice_id === 14,
+    'TEST D: Later page containing invoice_funded event (Invoice 14) is discovered cleanly'
+  );
+}
+
 // 11c. ENABLE_BACKGROUND_DAEMON=true env validation
 function testDaemonEnvFlag() {
   const originalEnv = process.env.ENABLE_BACKGROUND_DAEMON;
@@ -313,16 +374,18 @@ function testDaemonEnvFlag() {
 }
 
 async function runAsyncTests() {
+  await testSdkRequestShapes();
   await testMultiPagePagination();
   await testPageBoundaryDeduplication();
   await testPage2ErrorRecovery();
   await testEmptyPagePaginationContinuation();
   await testEmptyPageTermination();
+  await testLaterPageDiscovery();
   testDaemonEnvFlag();
 
   console.log(`\nResults: ${passedTests}/${totalTests} unit tests passed.`);
   if (passedTests === totalTests) {
-    console.log('🎉 ALL PHASE 5B-2 UNIT TESTS PASSED.');
+    console.log('🎉 ALL PHASE 5B-2 EVENT INGESTION UNIT TESTS PASSED.');
     process.exit(0);
   } else {
     console.error('❌ SOME UNIT TESTS FAILED.');
