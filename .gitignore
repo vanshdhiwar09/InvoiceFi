@@ -30,9 +30,13 @@ Thumbs.db
 
 # Internal IDE rules & planning documents
 .cursor/
+.agents/
 DESIGN-stripe.md
 InvoiceFi_Idea_Submission.md
 InvoiceFi_Level_4-7_Execution_Plan.md
 Stellar_Reference_Sources.md
 implementation_plan.md
 InvoiceFi Screenshots and Recordings/
+frontend/AGENTS.md
+frontend/CLAUDE.md
+frontend/README.md
