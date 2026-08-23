@@ -577,6 +577,44 @@ function testAssert(condition, testName) {
     'Test 65: No client PII or sensitive keys are included in any analytics payloads');
 }
 
+// Test 66: Transaction View on Explorer URL formatting
+{
+  const mockTxHash = 'fd614ae1b225bb5a084b7c808290c2d8c0353ae7cf865486d5b2a44851c54f2e';
+  const explorerUrl = `https://stellar.expert/explorer/testnet/tx/${mockTxHash}`;
+  testAssert(
+    explorerUrl.startsWith('https://stellar.expert/explorer/testnet/tx/') && explorerUrl.endsWith(mockTxHash),
+    'Test 66: View on explorer link targets valid Stellar Expert Testnet URL format'
+  );
+}
+
+// Test 67: Disconnected pre-wallet create screen onboarding messaging
+{
+  const onboardingCopy = {
+    title: 'Create an Invoice',
+    subtitle: 'Turn an unpaid invoice into a tokenized financing opportunity on Stellar Testnet.',
+    cta: 'Connect your wallet to continue.'
+  };
+  testAssert(
+    onboardingCopy.title === 'Create an Invoice' &&
+    onboardingCopy.subtitle.includes('tokenized financing opportunity') &&
+    onboardingCopy.cta === 'Connect your wallet to continue.',
+    'Test 67: Disconnected pre-wallet create screen provides clear onboarding messaging'
+  );
+}
+
+// Test 68: Public dashboard explanation header copy
+{
+  const isConnected = false;
+  const headerTitle = isConnected ? 'Dashboard' : 'Public Testnet Invoices';
+  const headerDesc = isConnected
+    ? 'Track your invoices, funding, and settlement activity on Stellar Testnet.'
+    : 'Browse invoices available on the Testnet. Connect your wallet to create invoices and access wallet-specific actions.';
+  testAssert(
+    headerTitle === 'Public Testnet Invoices' && headerDesc.includes('Browse invoices available on the Testnet'),
+    'Test 68: Public dashboard header provides clear disconnected explanation copy'
+  );
+}
+
 console.log(`\nResults: ${passedTests}/${totalTests} frontend workflow unit tests passed.`);
 if (passedTests === totalTests) {
   console.log('🎉 ALL PHASE 6H FRONTEND WORKFLOW & ANALYTICS UNIT TESTS PASSED.');

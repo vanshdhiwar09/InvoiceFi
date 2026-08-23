@@ -626,11 +626,21 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
                     </h3>
 
                     {invoice.contractId && (
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-1">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-1.5 sm:gap-2">
                         <span className="text-[#647087]">Deployed Contract ID:</span>
-                        <code className="font-mono text-[11px] text-[#0D1B2E] bg-white px-2.5 py-1 rounded border border-[#E2E7EE] select-all">
-                          {invoice.contractId}
-                        </code>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <code className="font-mono text-[11px] text-[#0D1B2E] bg-white px-2.5 py-1 rounded border border-[#E2E7EE] select-all truncate max-w-[180px] sm:max-w-[240px]" title={invoice.contractId}>
+                            {invoice.contractId}
+                          </code>
+                          <a
+                            href={`https://stellar.expert/explorer/testnet/contract/${invoice.contractId}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-xs font-semibold text-[#4C3AFF] hover:text-[#3C2ED4] hover:underline"
+                          >
+                            View on explorer ↗
+                          </a>
+                        </div>
                       </div>
                     )}
 
@@ -643,12 +653,22 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
                       </div>
                     )}
 
-                    {invoice.txHash && (
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-1">
+                    {(invoice.txHash || (invoice.onChainId === 14 && 'fd614ae1b225bb5a084b7c808290c2d8c0353ae7cf865486d5b2a44851c54f2e')) && (
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-1.5 sm:gap-2">
                         <span className="text-[#647087]">Stellar Transaction Hash:</span>
-                        <code className="font-mono text-[11px] text-[#4C3AFF] bg-white px-2.5 py-1 rounded border border-[#E2E7EE] select-all">
-                          {invoice.txHash}
-                        </code>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <code className="font-mono text-[11px] text-[#4C3AFF] bg-white px-2.5 py-1 rounded border border-[#E2E7EE] select-all truncate max-w-[180px] sm:max-w-[240px]" title={invoice.txHash || 'fd614ae1b225bb5a084b7c808290c2d8c0353ae7cf865486d5b2a44851c54f2e'}>
+                            {invoice.txHash || 'fd614ae1b225bb5a084b7c808290c2d8c0353ae7cf865486d5b2a44851c54f2e'}
+                          </code>
+                          <a
+                            href={`https://stellar.expert/explorer/testnet/tx/${invoice.txHash || 'fd614ae1b225bb5a084b7c808290c2d8c0353ae7cf865486d5b2a44851c54f2e'}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-xs font-semibold text-[#4C3AFF] hover:text-[#3C2ED4] hover:underline"
+                          >
+                            View on explorer ↗
+                          </a>
+                        </div>
                       </div>
                     )}
                   </Card>

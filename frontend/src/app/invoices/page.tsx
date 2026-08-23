@@ -130,19 +130,27 @@ export default function DashboardInvoicesPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#E2E7EE]">
           <div className="space-y-1">
             <h1 className="text-2xl font-semibold text-[#0D1B2E] tracking-tight">
-              Dashboard
+              {isConnected ? 'Dashboard' : 'Public Testnet Invoices'}
             </h1>
             <p className="text-sm text-[#647087]">
-              Track your invoices, funding, and settlement activity on Stellar Testnet.
+              {isConnected
+                ? 'Track your invoices, funding, and settlement activity on Stellar Testnet.'
+                : 'Browse invoices available on the Testnet. Connect your wallet to create invoices and access wallet-specific actions.'}
             </p>
           </div>
 
-          {/* Connected Wallet Context Indicator */}
-          {isConnected && publicKey && (
+          {/* Connected vs Public Context Indicator */}
+          {isConnected && publicKey ? (
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F5F8FB] border border-[#E2E7EE] text-xs">
               <span className="w-2 h-2 rounded-full bg-[#0F6E5C]" />
               <span className="text-[#647087]">Wallet:</span>
               <span className="font-mono font-semibold text-[#0D1B2E]">{formatAddress(publicKey)}</span>
+            </div>
+          ) : (
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F5F8FB] border border-[#E2E7EE] text-xs">
+              <span className="w-2 h-2 rounded-full bg-[#8894A6]" />
+              <span className="text-[#647087]">View:</span>
+              <span className="font-semibold text-[#0D1B2E]">Public Testnet Explorer</span>
             </div>
           )}
         </div>

@@ -6,6 +6,11 @@ import { Analytics } from '@vercel/analytics/react';
 export const metadata: Metadata = {
   title: 'InvoiceFi — Stellar Invoice Tokenization Protocol',
   description: 'Instant liquidity protocol for B2B invoices on Stellar Soroban Testnet',
+  icons: {
+    icon: '/icon.svg',
+    shortcut: '/icon.svg',
+    apple: '/icon.svg',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

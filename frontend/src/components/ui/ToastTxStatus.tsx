@@ -89,9 +89,19 @@ export const ToastTxStatus: React.FC<ToastTxStatusProps> = ({
               {status === 'Failed' && (errorMessage || 'Transaction was rejected by wallet.')}
             </p>
             {txHash && (
-              <p className="text-[11px] font-mono text-[#8894A6] mt-1 truncate max-w-[220px]">
-                Tx: {txHash}
-              </p>
+              <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px]">
+                <span className="font-mono text-[#8894A6] truncate max-w-[180px]" title={txHash}>
+                  Tx: {txHash}
+                </span>
+                <a
+                  href={`https://stellar.expert/explorer/testnet/tx/${txHash}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-[#4C3AFF] hover:underline inline-flex items-center gap-0.5 shrink-0"
+                >
+                  View on explorer ↗
+                </a>
+              </div>
             )}
           </div>
         </div>
