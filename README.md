@@ -176,7 +176,7 @@ InvoiceFi underwent testing by 12 distinct users through our structured feedback
   - 🟡 **Feedback Driven Improvements**: Added explorer links, clearer disconnected wallet state cards, and top stat card SVG icons based directly on user feedback.
 
 - **Feedback Form**: [Google Feedback Form](https://forms.gle/2mefPw72fh3enLcKA)
-- **Exported Feedback Sheet**: [View Feedback Responses Sheet](PLACEHOLDER_FEEDBACK_SHEET_URL)
+- **Exported Feedback Sheet**: [View Feedback Responses Sheet](https://docs.google.com/spreadsheets/d/1bK_b4M2r1nQrEeGTPlTGFuL1pp_C1euft2HRhhhiph0/edit?usp=sharing)
 
 ### Level 4 Requirements Evidence
 - **Public GitHub Repository**: [https://github.com/vanshdhiwar09/InvoiceFi](https://github.com/vanshdhiwar09/InvoiceFi)
