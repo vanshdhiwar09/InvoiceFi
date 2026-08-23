@@ -137,7 +137,7 @@ stateDiagram-v2
 ![InvoiceFi Home](docs/screenshots/Homepage.png)
 
 #### 📊 Level 4 Wallet Activity Dashboard (`/dashboard`)
-![InvoiceFi Dashboard](docs/screenshots/DashBoard.png)
+![InvoiceFi Dashboard](docs/screenshots/dashboard.png)
 
 #### 📋 Invoices Workspace (`/invoices`)
 ![Invoice Workspace](docs/screenshots/Invoices.png)
