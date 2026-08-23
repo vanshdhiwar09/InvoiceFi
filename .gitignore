@@ -27,3 +27,12 @@ frontend/.env.local
 *.log
 .DS_Store
 Thumbs.db
+
+# Internal IDE rules & planning documents
+.cursor/
+DESIGN-stripe.md
+InvoiceFi_Idea_Submission.md
+InvoiceFi_Level_4-7_Execution_Plan.md
+Stellar_Reference_Sources.md
+implementation_plan.md
+InvoiceFi Screenshots and Recordings/
