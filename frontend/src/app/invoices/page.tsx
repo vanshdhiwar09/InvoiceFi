@@ -130,7 +130,7 @@ export default function DashboardInvoicesPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#E2E7EE]">
           <div className="space-y-1">
             <h1 className="text-2xl font-semibold text-[#0D1B2E] tracking-tight">
-              {isConnected ? 'Dashboard' : 'Public Testnet Invoices'}
+              {isConnected ? 'Invoices' : 'Public Testnet Invoices'}
             </h1>
             <p className="text-sm text-[#647087]">
               {isConnected
@@ -181,7 +181,14 @@ export default function DashboardInvoicesPage() {
           ) : (
             <>
               <Card className="space-y-2 overflow-hidden min-w-0">
-                <p className="text-xs font-medium text-[#647087] uppercase tracking-wider">Active Invoices</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-medium text-[#647087] uppercase tracking-wider">Active Invoices</p>
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#4C3AFF]/10 text-[#4C3AFF] flex items-center justify-center shrink-0">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                </div>
                 <p className="font-mono tnum text-xl sm:text-2xl lg:text-3xl font-bold text-[#0D1B2E] truncate">
                   {summary.activeInvoices}
                 </p>
@@ -189,7 +196,14 @@ export default function DashboardInvoicesPage() {
               </Card>
 
               <Card className="space-y-2 overflow-hidden min-w-0">
-                <p className="text-xs font-medium text-[#647087] uppercase tracking-wider">Total Face Value</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-medium text-[#647087] uppercase tracking-wider">Total Face Value</p>
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#0D1B2E]/10 text-[#0D1B2E] flex items-center justify-center shrink-0">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V6m0 8v2m0-10e-5a9 9 0 110 18 9 9 0 010-18z" />
+                    </svg>
+                  </div>
+                </div>
                 <p className="font-mono tnum text-xl sm:text-2xl lg:text-3xl font-bold text-[#0D1B2E] truncate" title={formatCurrency(summary.totalFaceValue)}>
                   {formatCurrency(summary.totalFaceValue)}
                 </p>
@@ -197,7 +211,14 @@ export default function DashboardInvoicesPage() {
               </Card>
 
               <Card className="space-y-2 overflow-hidden min-w-0">
-                <p className="text-xs font-medium text-[#647087] uppercase tracking-wider">Total Funded</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-medium text-[#647087] uppercase tracking-wider">Total Funded</p>
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#4C3AFF]/10 text-[#4C3AFF] flex items-center justify-center shrink-0">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                  </div>
+                </div>
                 <p className="font-mono tnum text-xl sm:text-2xl lg:text-3xl font-bold text-[#4C3AFF] truncate" title={formatCurrency(summary.totalFundedValue)}>
                   {formatCurrency(summary.totalFundedValue)}
                 </p>
@@ -205,7 +226,14 @@ export default function DashboardInvoicesPage() {
               </Card>
 
               <Card className="space-y-2 overflow-hidden min-w-0">
-                <p className="text-xs font-medium text-[#647087] uppercase tracking-wider">Total Repaid</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-medium text-[#647087] uppercase tracking-wider">Total Repaid</p>
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#0F6E5C]/10 text-[#0F6E5C] flex items-center justify-center shrink-0">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                  </div>
+                </div>
                 <p className="font-mono tnum text-xl sm:text-2xl lg:text-3xl font-bold text-[#0F6E5C] truncate" title={formatCurrency(summary.totalRepaidValue)}>
                   {formatCurrency(summary.totalRepaidValue)}
                 </p>

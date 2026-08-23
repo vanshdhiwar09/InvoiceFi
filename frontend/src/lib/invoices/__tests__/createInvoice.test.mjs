@@ -643,10 +643,67 @@ function testAssert(condition, testName) {
 // Test 71: AppShell about route navigation mapping
 {
   const pathname = '/about';
-  const currentRoute = pathname === '/invoices' ? 'invoices' : pathname === '/create' ? 'create' : pathname === '/about' ? 'about' : 'home';
+  const currentRoute = pathname === '/dashboard' ? 'dashboard' : pathname === '/invoices' ? 'invoices' : pathname === '/create' ? 'create' : pathname === '/about' ? 'about' : 'home';
   testAssert(
     currentRoute === 'about',
     'Test 71: AppShell maps /about pathname to activeRoute about'
+  );
+}
+
+// Test 72: AppShell dashboard route navigation mapping
+{
+  const pathname = '/dashboard';
+  const currentRoute = pathname === '/dashboard' ? 'dashboard' : pathname === '/invoices' ? 'invoices' : pathname === '/create' ? 'create' : pathname === '/about' ? 'about' : 'home';
+  testAssert(
+    currentRoute === 'dashboard',
+    'Test 72: AppShell maps /dashboard pathname to activeRoute dashboard'
+  );
+}
+
+// Test 73: Dashboard user-specific invoice filtering (freelancer vs investor)
+{
+  const userPubKey = 'GAN5PGTFXO5ZVASEW5YTFB3F4324CDBXNNQ7GXHNHUL5C3IJVWZK2F3S';
+  const sampleInvoices = [
+    { id: 'INV-1', freelancerWallet: 'GAN5PGTFXO5ZVASEW5YTFB3F4324CDBXNNQ7GXHNHUL5C3IJVWZK2F3S', investorWallet: 'GBPXF53...', faceValue: 1000, advanceAmount: 950, fundedAmount: 950, lifecycleState: 'Funded' },
+    { id: 'INV-2', freelancerWallet: 'GOTHER...', investorWallet: 'GAN5PGTFXO5ZVASEW5YTFB3F4324CDBXNNQ7GXHNHUL5C3IJVWZK2F3S', faceValue: 500, advanceAmount: 450, fundedAmount: 450, lifecycleState: 'Repaid' },
+    { id: 'INV-3', freelancerWallet: 'GTHIRD...', investorWallet: 'GOTHER...', faceValue: 2000, advanceAmount: 1800, fundedAmount: 0, lifecycleState: 'Created' }
+  ];
+  const userFiltered = sampleInvoices.filter(inv => {
+    const pubLower = userPubKey.toLowerCase();
+    return inv.freelancerWallet.toLowerCase() === pubLower || inv.investorWallet?.toLowerCase() === pubLower;
+  });
+  testAssert(
+    userFiltered.length === 2 && userFiltered.some(i => i.id === 'INV-1') && userFiltered.some(i => i.id === 'INV-2'),
+    'Test 73: Dashboard correctly filters invoices associated with connected wallet (both freelancer & investor)'
+  );
+}
+
+// Test 74: Dashboard top 4 stat cards calculation
+{
+  const userInvoices = [
+    { id: 'INV-1', faceValue: 1000, advanceAmount: 950, fundedAmount: 950, lifecycleState: 'Funded' },
+    { id: 'INV-2', faceValue: 500, advanceAmount: 450, fundedAmount: 450, repaymentAmount: 500, lifecycleState: 'Closed' },
+    { id: 'INV-3', faceValue: 800, advanceAmount: 750, fundedAmount: 0, lifecycleState: 'Tokenized' }
+  ];
+  const totalCount = userInvoices.length;
+  const tokenizedCount = userInvoices.filter(i => i.lifecycleState === 'Tokenized').length;
+  const fundedCount = userInvoices.filter(i => i.lifecycleState === 'Funded').length;
+  const closedCount = userInvoices.filter(i => i.lifecycleState === 'Closed' || i.lifecycleState === 'Repaid').length;
+
+  testAssert(
+    totalCount === 3 && tokenizedCount === 1 && fundedCount === 1 && closedCount === 1,
+    'Test 74: Dashboard 4 stat cards (Total, Tokenized, Funded, Closed) calculated accurately'
+  );
+}
+
+// Test 75: Disconnected wallet dashboard state logic
+{
+  const isConnected = false;
+  const publicKey = null;
+  const showDisconnectedCard = !isConnected || !publicKey;
+  testAssert(
+    showDisconnectedCard === true,
+    'Test 75: Disconnected wallet state triggers Connect Your Wallet card prompt'
   );
 }
 

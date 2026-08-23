@@ -20,6 +20,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children, hero, activeRoute 
   const { isConnected, walletName, publicKey } = useWallet();
 
   const currentRoute = activeRoute || (
+    pathname === '/dashboard' ? 'dashboard' :
     pathname === '/invoices' ? 'invoices' :
     pathname === '/create' ? 'create' :
     pathname === '/about' ? 'about' : 'home'
@@ -46,8 +47,8 @@ export const AppShell: React.FC<AppShellProps> = ({ children, hero, activeRoute 
         <nav className="hidden md:flex items-center gap-1 bg-[#F1F5F9] p-1.5 rounded-full border border-[#E2E7EE] shadow-2xs shrink-0 mx-auto">
           <Link
             href="/"
-            className={`px-5 py-1.5 sm:px-6 sm:py-2 rounded-full text-xs sm:text-sm font-semibold transition-all ${
-              currentRoute === 'home' || currentRoute === 'dashboard'
+            className={`px-4 py-1.5 sm:px-5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold transition-all ${
+              currentRoute === 'home'
                 ? 'bg-white text-[#4C3AFF] shadow-xs'
                 : 'text-[#647087] hover:text-[#0D1B2E]'
             }`}
@@ -55,8 +56,18 @@ export const AppShell: React.FC<AppShellProps> = ({ children, hero, activeRoute 
             Home
           </Link>
           <Link
+            href="/dashboard"
+            className={`px-4 py-1.5 sm:px-5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold transition-all ${
+              currentRoute === 'dashboard'
+                ? 'bg-white text-[#4C3AFF] shadow-xs'
+                : 'text-[#647087] hover:text-[#0D1B2E]'
+            }`}
+          >
+            Dashboard
+          </Link>
+          <Link
             href="/invoices"
-            className={`px-5 py-1.5 sm:px-6 sm:py-2 rounded-full text-xs sm:text-sm font-semibold transition-all ${
+            className={`px-4 py-1.5 sm:px-5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold transition-all ${
               currentRoute === 'invoices'
                 ? 'bg-white text-[#4C3AFF] shadow-xs'
                 : 'text-[#647087] hover:text-[#0D1B2E]'
@@ -66,7 +77,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children, hero, activeRoute 
           </Link>
           <Link
             href="/create"
-            className={`px-5 py-1.5 sm:px-6 sm:py-2 rounded-full text-xs sm:text-sm font-semibold transition-all ${
+            className={`px-4 py-1.5 sm:px-5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold transition-all ${
               currentRoute === 'create'
                 ? 'bg-white text-[#4C3AFF] shadow-xs'
                 : 'text-[#647087] hover:text-[#0D1B2E]'
@@ -76,7 +87,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children, hero, activeRoute 
           </Link>
           <Link
             href="/about"
-            className={`px-5 py-1.5 sm:px-6 sm:py-2 rounded-full text-xs sm:text-sm font-semibold transition-all ${
+            className={`px-4 py-1.5 sm:px-5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold transition-all ${
               currentRoute === 'about'
                 ? 'bg-white text-[#4C3AFF] shadow-xs'
                 : 'text-[#647087] hover:text-[#0D1B2E]'
@@ -124,13 +135,24 @@ export const AppShell: React.FC<AppShellProps> = ({ children, hero, activeRoute 
         <Link
           href="/"
           className={`flex flex-col items-center gap-1 text-[11px] font-semibold ${
-            currentRoute === 'home' || currentRoute === 'dashboard' ? 'text-[#4C3AFF]' : 'text-[#647087]'
+            currentRoute === 'home' ? 'text-[#4C3AFF]' : 'text-[#647087]'
           }`}
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
           </svg>
           Home
+        </Link>
+        <Link
+          href="/dashboard"
+          className={`flex flex-col items-center gap-1 text-[11px] font-semibold ${
+            currentRoute === 'dashboard' ? 'text-[#4C3AFF]' : 'text-[#647087]'
+          }`}
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+          </svg>
+          Dashboard
         </Link>
         <Link
           href="/invoices"
@@ -189,6 +211,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children, hero, activeRoute 
           </div>
           <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs font-medium">
             <Link href="/" className="hover:text-white transition-colors">Home</Link>
+            <Link href="/dashboard" className="hover:text-white transition-colors">Dashboard</Link>
             <Link href="/invoices" className="hover:text-white transition-colors">Invoices</Link>
             <Link href="/create" className="hover:text-white transition-colors">Create</Link>
             <Link href="/about" className="hover:text-white transition-colors">About</Link>
