@@ -31,7 +31,7 @@ InvoiceFi is a decentralized invoice financing protocol built on Stellar and Sor
 
 - **Live Application**: [https://invoice-fi-five.vercel.app](https://invoice-fi-five.vercel.app)
 - **GitHub Repository**: [https://github.com/vanshdhiwar09/InvoiceFi](https://github.com/vanshdhiwar09/InvoiceFi)
-- **Demo Video Walkthrough**: [Watch Full Level 4 Walkthrough](PLACEHOLDER_DEMO_VIDEO_URL)
+- **Demo Video Walkthrough**: [Watch Full Level 4 Walkthrough](https://drive.google.com/file/d/1kylGWaTJL3s9p4uy1JvJOOYAR4XhRfaR/view?usp=sharing)
 
 ### Stellar Expert Testnet Contract Explorer
 - 📄 [Invoice Soroban Contract Explorer](https://stellar.expert/explorer/testnet/contract/CCG2BPR7NEQPV4XOLABSZOWSU24CBJXF4V7LEXIXMAMBPIL6P5CPO2YR)
@@ -184,7 +184,7 @@ InvoiceFi underwent testing by 12 distinct users through our structured feedback
 - **Live Demo Deployment**: [https://invoice-fi-five.vercel.app/](https://invoice-fi-five.vercel.app/)
 - **Soroban Contract Address**: `CCG2BPR7NEQPV4XOLABSZOWSU24CBJXF4V7LEXIXMAMBPIL6P5CPO2YR`
 - **Wallet Interaction Evidence**: [10+ Wallet Interactions Evidence](PLACEHOLDER_WALLET_EVIDENCE_URL)
-- **Demo Video Walkthrough**: [Watch Walkthrough Video](PLACEHOLDER_DEMO_VIDEO_URL)
+- **Demo Video Walkthrough**: [Watch Walkthrough Video](https://drive.google.com/file/d/1kylGWaTJL3s9p4uy1JvJOOYAR4XhRfaR/view?usp=sharing)
 
 ---
 
