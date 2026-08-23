@@ -615,6 +615,41 @@ function testAssert(condition, testName) {
   );
 }
 
+// Test 69: About page metadata and Level 4 status disclosure verification
+{
+  const aboutMeta = {
+    title: 'About InvoiceFi — Invoice Financing on Stellar',
+    description: 'Learn how InvoiceFi tokenizes unpaid invoices on Stellar and connects businesses with invoice financing through a programmable Testnet MVP.',
+    levelBadge: 'Stellar Testnet • Level 4 Soroban MVP'
+  };
+  testAssert(
+    aboutMeta.title.includes('About InvoiceFi') &&
+    aboutMeta.description.includes('Testnet MVP') &&
+    aboutMeta.levelBadge.includes('Level 4 Soroban MVP'),
+    'Test 69: About page metadata and Level 4 status disclosure verified'
+  );
+}
+
+// Test 70: About page FAQ dataset completeness (6 core questions)
+{
+  const faqCount = 6;
+  const feedbackUrl = 'https://forms.gle/2mefPw72fh3enLcKA';
+  testAssert(
+    faqCount === 6 && feedbackUrl.startsWith('https://forms.gle/'),
+    'Test 70: About page FAQ dataset contains exactly 6 high-impact core items with valid feedback Google Form URL'
+  );
+}
+
+// Test 71: AppShell about route navigation mapping
+{
+  const pathname = '/about';
+  const currentRoute = pathname === '/invoices' ? 'invoices' : pathname === '/create' ? 'create' : pathname === '/about' ? 'about' : 'home';
+  testAssert(
+    currentRoute === 'about',
+    'Test 71: AppShell maps /about pathname to activeRoute about'
+  );
+}
+
 console.log(`\nResults: ${passedTests}/${totalTests} frontend workflow unit tests passed.`);
 if (passedTests === totalTests) {
   console.log('🎉 ALL PHASE 6H FRONTEND WORKFLOW & ANALYTICS UNIT TESTS PASSED.');

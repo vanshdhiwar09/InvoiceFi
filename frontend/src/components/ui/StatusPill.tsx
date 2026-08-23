@@ -8,8 +8,6 @@ export interface StatusPillProps {
 }
 
 export const StatusPill: React.FC<StatusPillProps> = ({ status, className = '' }) => {
-  const normalizedStatus = (status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()) as InvoiceStatusType;
-
   const styles: Record<string, string> = {
     Created: 'bg-[#F5F8FB] text-[#647087] border border-[#E2E7EE]',
     Tokenized: 'bg-[#DAD6FF]/60 text-[#4C3AFF] border border-[#7669FF]/30',
@@ -22,14 +20,18 @@ export const StatusPill: React.FC<StatusPillProps> = ({ status, className = '' }
     Cancelled: 'bg-[#FCE7EA] text-[#D6304A] border border-[#D6304A]/20'
   };
 
-  const statusStyle = styles[normalizedStatus] || 'bg-[#F5F8FB] text-[#647087] border border-[#E2E7EE]';
+  const matchedKey = Object.keys(styles).find(
+    (k) => k.toLowerCase() === String(status).trim().toLowerCase()
+  ) || (status.charAt(0).toUpperCase() + status.slice(1).toLowerCase());
+
+  const statusStyle = styles[matchedKey] || 'bg-[#F5F8FB] text-[#647087] border border-[#E2E7EE]';
 
   return (
     <span
       className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold select-none ${statusStyle} ${className}`}
     >
       <span className="w-1.5 h-1.5 rounded-full bg-current" />
-      {normalizedStatus}
+      {matchedKey}
     </span>
   );
 };

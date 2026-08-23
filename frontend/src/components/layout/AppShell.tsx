@@ -11,7 +11,7 @@ import { formatAddress } from '@/lib/wallet/walletAdapter';
 export interface AppShellProps {
   children: React.ReactNode;
   hero?: React.ReactNode;
-  activeRoute?: 'home' | 'dashboard' | 'invoices' | 'create';
+  activeRoute?: 'home' | 'dashboard' | 'invoices' | 'create' | 'about';
 }
 
 export const AppShell: React.FC<AppShellProps> = ({ children, hero, activeRoute }) => {
@@ -21,7 +21,8 @@ export const AppShell: React.FC<AppShellProps> = ({ children, hero, activeRoute 
 
   const currentRoute = activeRoute || (
     pathname === '/invoices' ? 'invoices' :
-    pathname === '/create' ? 'create' : 'home'
+    pathname === '/create' ? 'create' :
+    pathname === '/about' ? 'about' : 'home'
   );
 
   return (
@@ -73,6 +74,16 @@ export const AppShell: React.FC<AppShellProps> = ({ children, hero, activeRoute 
           >
             Create
           </Link>
+          <Link
+            href="/about"
+            className={`px-5 py-1.5 sm:px-6 sm:py-2 rounded-full text-xs sm:text-sm font-semibold transition-all ${
+              currentRoute === 'about'
+                ? 'bg-white text-[#4C3AFF] shadow-xs'
+                : 'text-[#647087] hover:text-[#0D1B2E]'
+            }`}
+          >
+            About
+          </Link>
         </nav>
 
         {/* Right: Wallet Action Bar */}
@@ -109,10 +120,10 @@ export const AppShell: React.FC<AppShellProps> = ({ children, hero, activeRoute 
       </main>
 
       {/* Mobile Bottom Navigation Bar per InvoiceFi_DESIGN.md §3.6 */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[#E2E7EE] px-6 py-3 flex items-center justify-around shadow-lg">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[#E2E7EE] px-4 py-2 flex items-center justify-around shadow-lg">
         <Link
           href="/"
-          className={`flex flex-col items-center gap-1 text-xs font-semibold ${
+          className={`flex flex-col items-center gap-1 text-[11px] font-semibold ${
             currentRoute === 'home' || currentRoute === 'dashboard' ? 'text-[#4C3AFF]' : 'text-[#647087]'
           }`}
         >
@@ -123,7 +134,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children, hero, activeRoute 
         </Link>
         <Link
           href="/invoices"
-          className={`flex flex-col items-center gap-1 text-xs font-semibold ${
+          className={`flex flex-col items-center gap-1 text-[11px] font-semibold ${
             currentRoute === 'invoices' ? 'text-[#4C3AFF]' : 'text-[#647087]'
           }`}
         >
@@ -134,7 +145,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children, hero, activeRoute 
         </Link>
         <Link
           href="/create"
-          className={`flex flex-col items-center gap-1 text-xs font-semibold ${
+          className={`flex flex-col items-center gap-1 text-[11px] font-semibold ${
             currentRoute === 'create' ? 'text-[#4C3AFF]' : 'text-[#647087]'
           }`}
         >
@@ -143,10 +154,21 @@ export const AppShell: React.FC<AppShellProps> = ({ children, hero, activeRoute 
           </svg>
           Create
         </Link>
+        <Link
+          href="/about"
+          className={`flex flex-col items-center gap-1 text-[11px] font-semibold ${
+            currentRoute === 'about' ? 'text-[#4C3AFF]' : 'text-[#647087]'
+          }`}
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          About
+        </Link>
         <button
           type="button"
           onClick={() => setIsWalletSheetOpen(true)}
-          className={`flex flex-col items-center gap-1 text-xs font-semibold ${
+          className={`flex flex-col items-center gap-1 text-[11px] font-semibold ${
             isConnected ? 'text-[#0F6E5C]' : 'text-[#647087] hover:text-[#4C3AFF]'
           }`}
         >
@@ -158,15 +180,40 @@ export const AppShell: React.FC<AppShellProps> = ({ children, hero, activeRoute 
       </div>
 
       {/* Footer */}
-      <footer className="bg-[#070A14] text-[#94A3B8] border-t border-[#1E293B] py-8 px-4 text-center text-xs mb-12 md:mb-0">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p>© {new Date().getFullYear()} InvoiceFi — Stellar Invoice Tokenization Protocol</p>
-          <div className="flex items-center gap-4">
-            <span className="font-mono text-xs text-[#647087]">Level 4 Testnet MVP</span>
-            <span className="text-[#334155]">|</span>
-            <Link href="https://soroban-testnet.stellar.org" target="_blank" className="hover:text-white transition-colors">
-              Soroban RPC
-            </Link>
+      <footer className="bg-[#070A14] text-[#94A3B8] border-t border-[#1E293B] py-10 px-4 text-xs mb-12 md:mb-0">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
+          <div className="space-y-1 text-center sm:text-left">
+            <p className="font-semibold text-white text-sm">InvoiceFi</p>
+            <p className="text-xs text-[#647087]">Turn Unpaid Invoices Into Working Capital.</p>
+            <p className="text-[11px] font-mono text-[#4C3AFF]">Built on Stellar • Soroban • Testnet</p>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs font-medium">
+            <Link href="/" className="hover:text-white transition-colors">Home</Link>
+            <Link href="/invoices" className="hover:text-white transition-colors">Invoices</Link>
+            <Link href="/create" className="hover:text-white transition-colors">Create</Link>
+            <Link href="/about" className="hover:text-white transition-colors">About</Link>
+            <a
+              href="https://forms.gle/2mefPw72fh3enLcKA"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 hover:text-white transition-colors"
+            >
+              <svg className="w-4 h-4 fill-none stroke-current" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+              </svg>
+              <span>Feedback ↗</span>
+            </a>
+            <a
+              href="https://github.com/vanshdhiwar09/InvoiceFi"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 hover:text-white transition-colors"
+            >
+              <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+              </svg>
+              <span>GitHub ↗</span>
+            </a>
           </div>
         </div>
       </footer>
