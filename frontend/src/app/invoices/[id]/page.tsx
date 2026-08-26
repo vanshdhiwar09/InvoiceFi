@@ -17,14 +17,17 @@ import {
   formatXlm,
   formatDate,
   getInvoiceActions,
+  updateInvoiceToTokenized,
   updateInvoiceToFunded,
   updateInvoiceToRepaid,
   updateInvoiceToClosed,
   fetchBackendNoAStatus,
   mapSorobanStatusToLifecycleState
 } from '@/lib/invoices/invoiceService';
+import { updateTokenizedStatus } from '@/lib/invoices/metadataClient';
 import { trackInvoiceFunded } from '@/lib/analytics';
 import {
+  executeTokenizeInvoiceTx,
   executeInvestTx,
   executeRepayTx,
   executeClaimReturnsTx,
@@ -175,6 +178,59 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
     }
 
     setIsFundingModalOpen(true);
+  };
+
+  // Execute Tokenize Transaction
+  const handleExecuteTokenize = async () => {
+    if (!invoice || !publicKey) return;
+    const targetOnChainId = invoice.onChainId || Number(invoice.id.replace('INV-', ''));
+
+    if (isNaN(targetOnChainId) || targetOnChainId <= 0) {
+      alert("Invalid Soroban on-chain ID for tokenization.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setIsToastVisible(true);
+    setTxToastStatus('Awaiting signature');
+    setTxToastMessage('Approve tokenize_invoice() transaction in your wallet…');
+
+    const result = await executeTokenizeInvoiceTx(
+      {
+        freelancerAddress: publicKey,
+        invoiceId: targetOnChainId
+      },
+      (status, msg) => {
+        setTxToastStatus(status);
+        setTxToastMessage(msg);
+      }
+    );
+
+    setIsSubmitting(false);
+
+    if (result.success) {
+      // Reconcile with on-chain Soroban contract state
+      const check = await checkOnChainInvoiceStatus(targetOnChainId);
+      const invData = check.invoiceData as { status?: number | string } | undefined;
+      const rawStatus = invData?.status !== undefined ? (typeof invData.status === 'number' ? invData.status : Number(invData.status)) : 1;
+
+      if (rawStatus === 1 || String(invData?.status) === 'Tokenized') {
+        const updated: Invoice = {
+          ...invoice,
+          lifecycleState: 'Tokenized',
+          txHash: result.txHash || invoice.txHash
+        };
+        setInvoice(updated);
+
+        // Sync off-chain database & metadata status to TOKENIZED
+        if (updated.clientRef) {
+          updateTokenizedStatus(updated.clientRef).catch(() => {});
+        }
+        updateInvoiceToTokenized(updated.id);
+      } else {
+        alert("Soroban on-chain status reconciliation failed. Status is not Tokenized on-chain.");
+      }
+    }
   };
 
   // Execute Funding Transaction
@@ -702,6 +758,16 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
                           className="bg-[#4C3AFF] hover:bg-[#3C2ED4] text-white px-6 py-2.5 text-xs font-semibold rounded-xl shadow-sm"
                         >
                           {actionHint.enabled ? 'Fund Invoice Escrow' : actionHint.label}
+                        </Button>
+                      ) : actionHint.actionKey === 'tokenize' ? (
+                        <Button
+                          variant="primary"
+                          size="md"
+                          disabled={!actionHint.enabled || isSubmitting}
+                          onClick={handleExecuteTokenize}
+                          className="bg-[#4C3AFF] hover:bg-[#3C2ED4] text-white px-6 py-2.5 text-xs font-semibold rounded-xl shadow-sm"
+                        >
+                          {isSubmitting ? 'Tokenizing Asset…' : actionHint.label}
                         </Button>
                       ) : (
                         <Button

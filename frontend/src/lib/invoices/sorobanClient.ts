@@ -14,6 +14,25 @@ export const APPROVED_XLM_SAC_TOKEN = process.env.NEXT_PUBLIC_STELLAR_TOKEN_ADDR
 export const INVOICE_CONTRACT_ID = process.env.NEXT_PUBLIC_INVOICE_CONTRACT_ID || 'CCG2BPR7NEQPV4XOLABSZOWSU24CBJXF4V7LEXIXMAMBPIL6P5CPO2YR';
 export const STELLAR_RPC_URL = process.env.NEXT_PUBLIC_STELLAR_RPC_URL || 'https://soroban-testnet.stellar.org';
 
+function formatRpcErrorResult(errorResult: unknown): string {
+  if (!errorResult) return 'Transaction submission failed on Soroban RPC.';
+  try {
+    if (typeof errorResult === 'string') return errorResult;
+    if (typeof errorResult === 'object' && errorResult !== null) {
+      if ('toXDR' in errorResult && typeof (errorResult as { toXDR: unknown }).toXDR === 'function') {
+        return (errorResult as { toXDR: (f: string) => string }).toXDR('base64');
+      }
+      const errObj = errorResult as Record<string, unknown>;
+      if (errObj.status) return String(errObj.status);
+      if (errObj.code) return String(errObj.code);
+      return Object.keys(errObj).join(', ');
+    }
+  } catch {
+    // fallback
+  }
+  return 'Soroban RPC transaction submission error';
+}
+
 /**
  * Converts standard XLM decimal amount into 7-decimal integer Stroops (1 XLM = 10,000,000 Stroops).
  */
@@ -176,7 +195,7 @@ export async function executeCreateInvoiceTx(
     );
 
     if (sendRes.status === 'ERROR') {
-      throw new Error('Soroban RPC submission error: ' + JSON.stringify(sendRes.errorResult));
+      throw new Error('Soroban RPC submission error: ' + formatRpcErrorResult(sendRes.errorResult));
     }
 
     let getRes = await server.getTransaction(sendRes.hash);
@@ -290,7 +309,7 @@ export async function executeTokenizeInvoiceTx(
     );
 
     if (sendRes.status === 'ERROR') {
-      throw new Error('Soroban RPC submission error: ' + JSON.stringify(sendRes.errorResult));
+      throw new Error('Soroban RPC submission error: ' + formatRpcErrorResult(sendRes.errorResult));
     }
 
     let getRes = await server.getTransaction(sendRes.hash);
@@ -369,7 +388,7 @@ export async function executeInvestTx(
     );
 
     if (sendRes.status === 'ERROR') {
-      throw new Error('Soroban RPC submission error: ' + JSON.stringify(sendRes.errorResult));
+      throw new Error('Soroban RPC submission error: ' + formatRpcErrorResult(sendRes.errorResult));
     }
 
     let getRes = await server.getTransaction(sendRes.hash);
@@ -471,7 +490,7 @@ export async function executeRepayTx(
     );
 
     if (sendRes.status === 'ERROR') {
-      throw new Error('Soroban RPC submission error: ' + JSON.stringify(sendRes.errorResult));
+      throw new Error('Soroban RPC submission error: ' + formatRpcErrorResult(sendRes.errorResult));
     }
 
     let getRes = await server.getTransaction(sendRes.hash);
@@ -561,7 +580,7 @@ export async function executeClaimReturnsTx(
     );
 
     if (sendRes.status === 'ERROR') {
-      throw new Error('Soroban RPC submission error: ' + JSON.stringify(sendRes.errorResult));
+      throw new Error('Soroban RPC submission error: ' + formatRpcErrorResult(sendRes.errorResult));
     }
 
     let getRes = await server.getTransaction(sendRes.hash);
