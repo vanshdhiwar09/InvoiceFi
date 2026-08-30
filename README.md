@@ -188,7 +188,7 @@ The following table documents user feedback items that directly resulted in impl
 | **U02** | Anurag Dubey | Polish navigation bar header and logo branding. | Polished AppShell top header navigation, active route indicators, and brand logo styling. | [`74120b3`](https://github.com/vanshdhiwar09/InvoiceFi/commit/74120b3) |
 | **U03** | Souvik Mandal | Add website favicon and direct transaction verification links. | Added InvoiceFi SVG favicon asset and direct `View on explorer ↗` StellarExpert transaction links. | [`e7fb4bc`](https://github.com/vanshdhiwar09/InvoiceFi/commit/e7fb4bc) |
 | **U04** | Seyit Ali Değirmen | Expand project documentation and deployment architecture details. | Substantially overhauled README with architecture diagrams, contract tables, and evidence logs. | [`4e11064`](https://github.com/vanshdhiwar09/InvoiceFi/commit/4e11064) |
-| **U05** | JR Valencia | Explain what InvoiceFi replaces compared to traditional invoice market. | Implemented "From Waiting on Invoices to Accessing Liquidity" market positioning section on landing page. | Current |
+| **U05** | JR Valencia | Explain what InvoiceFi replaces compared to traditional invoice market. | Implemented "From Waiting on Invoices to Accessing Liquidity" market positioning section on landing page. | 82284e2 |
 
 ---
 
