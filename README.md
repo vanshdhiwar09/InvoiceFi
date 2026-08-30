@@ -289,6 +289,20 @@ cd frontend && npm run build
 
 ---
 
+## 🔄 CI/CD Pipeline
+
+InvoiceFi utilizes GitHub Actions workflows for continuous integration and continuous deployment:
+
+- **Continuous Integration (`.github/workflows/ci.yml`)**:
+  - **Soroban Contract**: Builds WASM release artifact and executes Rust unit tests (`cargo test`).
+  - **Backend API**: Installs dependencies and executes backend test suite (46 tests).
+  - **Frontend Application**: Installs dependencies, executes unit tests (89 tests), ESLint linter (`npm run lint`), and Next.js production build (`npm run build`).
+- **Continuous Deployment (`.github/workflows/cd.yml`)**:
+  - **Vercel Production CD**: Deploys frontend builds directly to Vercel production.
+  - **Stellar Testnet Contract CD**: Manually gated (`workflow_dispatch`) deployment workflow for building WASM release artifacts and deploying smart contracts to Stellar Testnet via Stellar CLI.
+
+---
+
 ## 🔒 Security & Permission Model
 
 - **Soroban `require_auth()` Checks**: Strict cryptographic authorization enforcing that only recorded freelancers can create/tokenize and only recorded investors can claim returns.

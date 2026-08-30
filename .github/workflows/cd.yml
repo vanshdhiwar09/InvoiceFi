@@ -1,0 +1,95 @@
+name: InvoiceFi CD (Deployment Pipeline)
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy_target:
+        description: "Deployment Target"
+        required: true
+        default: "frontend"
+        type: choice
+        options:
+          - frontend
+          - contract
+          - all
+      deploy_contract:
+        description: "Deploy Soroban Contract to Stellar Testnet"
+        required: true
+        default: false
+        type: boolean
+
+jobs:
+  deploy-frontend-vercel:
+    name: Deploy Frontend to Vercel Production
+    if: ${{ github.event.inputs.deploy_target == 'frontend' || github.event.inputs.deploy_target == 'all' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js (v22)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Frontend Dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Build Frontend Application
+        run: npm run build
+        working-directory: frontend
+        env:
+          NEXT_PUBLIC_INVOICE_CONTRACT_ID: ${{ secrets.NEXT_PUBLIC_INVOICE_CONTRACT_ID || 'CCG2BPR7NEQPV4XOLABSZOWSU24CBJXF4V7LEXIXMAMBPIL6P5CPO2YR' }}
+          NEXT_PUBLIC_STELLAR_TOKEN_ADDRESS: ${{ secrets.NEXT_PUBLIC_STELLAR_TOKEN_ADDRESS || 'CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC' }}
+          NEXT_PUBLIC_STELLAR_RPC_URL: ${{ secrets.NEXT_PUBLIC_STELLAR_RPC_URL || 'https://soroban-testnet.stellar.org' }}
+
+      - name: Deploy to Vercel Production
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: frontend
+          vercel-args: '--prod'
+
+  deploy-contract-testnet:
+    name: Deploy Soroban Smart Contract to Stellar Testnet
+    if: ${{ github.event.inputs.deploy_contract == true || github.event.inputs.deploy_target == 'contract' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust Toolchain (wasm32v1-none)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32v1-none
+
+      - name: Install Stellar CLI
+        run: |
+          cargo install --locked stellar-cli --features opt
+
+      - name: Build Soroban Contract WASM Release Artifact
+        run: cargo build --manifest-path=contracts/invoice_contract/Cargo.toml --target=wasm32v1-none --release
+
+      - name: Verify Contract WASM Artifact
+        run: |
+          if [ -f "target/wasm32v1-none/release/invoice_contract.wasm" ]; then
+            echo "WASM release artifact build verified!"
+            ls -lh target/wasm32v1-none/release/invoice_contract.wasm
+          else
+            echo "Error: WASM release artifact not found!"
+            exit 1
+          fi
+
+      - name: Deploy Soroban Contract to Stellar Testnet
+        run: |
+          stellar contract deploy \
+            --wasm target/wasm32v1-none/release/invoice_contract.wasm \
+            --source-account ${{ secrets.STELLAR_SECRET_KEY }} \
+            --rpc-url https://soroban-testnet.stellar.org \
+            --network-passphrase "Test SDF Network ; September 2015" \
+            --network testnet

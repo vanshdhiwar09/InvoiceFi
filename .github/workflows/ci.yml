@@ -59,3 +59,37 @@ jobs:
       - name: Run Backend Test Suite
         run: npm test
         working-directory: backend
+
+  frontend-tests:
+    name: Next.js Frontend Tests, Lint & Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js (v22)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Frontend Dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Run Frontend Unit Tests
+        run: npm test
+        working-directory: frontend
+
+      - name: Run Frontend Linter
+        run: npm run lint
+        working-directory: frontend
+
+      - name: Run Frontend Production Build
+        run: npm run build
+        working-directory: frontend
+        env:
+          NEXT_PUBLIC_INVOICE_CONTRACT_ID: ${{ secrets.NEXT_PUBLIC_INVOICE_CONTRACT_ID || 'CCG2BPR7NEQPV4XOLABSZOWSU24CBJXF4V7LEXIXMAMBPIL6P5CPO2YR' }}
+          NEXT_PUBLIC_STELLAR_TOKEN_ADDRESS: ${{ secrets.NEXT_PUBLIC_STELLAR_TOKEN_ADDRESS || 'CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC' }}
+          NEXT_PUBLIC_STELLAR_RPC_URL: ${{ secrets.NEXT_PUBLIC_STELLAR_RPC_URL || 'https://soroban-testnet.stellar.org' }}
