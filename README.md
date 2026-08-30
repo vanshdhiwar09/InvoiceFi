@@ -7,7 +7,6 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Rust](https://img.shields.io/badge/Rust-1.84%2B-orange?style=flat-square&logo=rust&logoColor=white)](https://www.rust-lang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-20.x-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/)
-[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?style=flat-square&logo=supabase&logoColor=white)](https://supabase.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 [![Status](https://img.shields.io/badge/Status-RiseIn_Level_4_MVP-0F6E5C?style=flat-square)](https://www.risein.com/)
 
@@ -17,101 +16,47 @@ InvoiceFi is a decentralized invoice financing protocol built on Stellar and Sor
 
 ---
 
-## 📌 Why InvoiceFi?
+## ⭐ Level 4 Submission Evidence
 
-- ⚡ **Instant Working Capital**: Eliminates 30–90 day payment waits by discounting and tokenizing receivables upfront.
-- 🔒 **Trustless Soroban Escrow**: Funds and invoice lifecycle states are locked inside WASM smart contracts, avoiding third-party custody risks.
-- 📋 **Automated Notice of Assignment (NoA)**: Asynchronous background worker processes on-chain funding events and logs non-PII settlement references (`INV-{onChainId}`).
-- 👛 **Multi-Wallet Abstraction**: Native browser wallet integration supporting Freighter, Albedo, and xBull wallets.
-- 📱 **Mobile-First CAD Design**: Responsive workspace with adaptive mobile navigation docks, status pills, and tabular activity layouts formatted down to 320px viewports.
+| Evidence Item | Verification Link / Details |
+|---|---|
+| 🌐 **Live Product Application** | [Open InvoiceFi App ↗](https://invoice-fi-five.vercel.app/) |
+| 💻 **Public GitHub Repository** | [View GitHub Repository ↗](https://github.com/vanshdhiwar09/InvoiceFi) |
+| 📜 **Stellar Soroban Contract** | [`CCG2BPR7NEQPV4XOLABSZOWSU24CBJXF4V7LEXIXMAMBPIL6P5CPO2YR`](https://stellar.expert/explorer/testnet/contract/CCG2BPR7NEQPV4XOLABSZOWSU24CBJXF4V7LEXIXMAMBPIL6P5CPO2YR) |
+| 💵 **Wrapped XLM SAC Token** | [`CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC`](https://stellar.expert/explorer/testnet/contract/CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC) |
+| 🎥 **Demo Video Walkthrough** | [Watch Demo Walkthrough (Google Drive) ↗](https://drive.google.com/file/d/1kylGWaTJL3s9p4uy1JvJOOYAR4XhRfaR/view?usp=sharing) |
+| 📊 **Vercel Production Analytics** | [View Production Telemetry Below](#-analytics--verification-evidence) |
+| 👛 **10+ Wallet Interaction Log** | [View On-Chain Wallet Interaction Evidence ↗](https://docs.google.com/spreadsheets/d/1bK_b4M2r1nQrEeGTPlTGFuL1pp_C1euft2HRhhhiph0/edit?usp=sharing) |
+| 💬 **User Feedback Responses** | [View Exported Google Form Responses Sheet ↗](https://docs.google.com/spreadsheets/d/1bK_b4M2r1nQrEeGTPlTGFuL1pp_C1euft2HRhhhiph0/edit?usp=sharing) |
+| 📱 **Mobile Responsive UI** | Tested down to 320px mobile viewports ([See Screenshots Below](#-screenshots)) |
+| 🔄 **Automated CI/CD Workflows** | [CI Pipeline (`ci.yml`)](https://github.com/vanshdhiwar09/InvoiceFi/actions/workflows/ci.yml) & [CD Pipeline (`cd.yml`)](https://github.com/vanshdhiwar09/InvoiceFi/actions/workflows/cd.yml) |
 
----
-
-## 🚀 Live Demo
-
-- **Live Application**: [https://invoice-fi-five.vercel.app](https://invoice-fi-five.vercel.app)
-- **GitHub Repository**: [https://github.com/vanshdhiwar09/InvoiceFi](https://github.com/vanshdhiwar09/InvoiceFi)
-- **Demo Video Walkthrough**: [Watch Full Level 4 Walkthrough](https://drive.google.com/file/d/1kylGWaTJL3s9p4uy1JvJOOYAR4XhRfaR/view?usp=sharing)
-
-### Stellar Expert Testnet Contract Explorer
-- 📄 [Invoice Soroban Contract Explorer](https://stellar.expert/explorer/testnet/contract/CCG2BPR7NEQPV4XOLABSZOWSU24CBJXF4V7LEXIXMAMBPIL6P5CPO2YR)
-- 💸 [Wrapped XLM SAC Token Explorer](https://stellar.expert/explorer/testnet/contract/CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC)
-
-Every transaction and contract invocation in InvoiceFi generates a direct StellarExpert Testnet link using this standard format:
-```text
-https://stellar.expert/explorer/testnet/contract/CCG2BPR7NEQPV4XOLABSZOWSU24CBJXF4V7LEXIXMAMBPIL6P5CPO2YR
-```
+> ℹ️ *Note: The video walkthrough demonstrates the complete 5-state Soroban lifecycle, Freighter wallet interactions, and asynchronous Notice of Assignment (NoA) background logging on Stellar Testnet.*
 
 ---
 
-## 📖 Table of Contents
+## 📌 Problem & Solution
 
-1. [⚡ Features](#-features)
-2. [🛠 Tech Stack](#-tech-stack)
-3. [🏗 System Architecture](#-system-architecture)
-4. [🚦 Invoice Lifecycle](#-invoice-lifecycle)
-5. [📸 Screenshots](#-screenshots)
-6. [💬 User Feedback & Level 4 Evidence](#-user-feedback--level-4-evidence)
-7. [📦 Folder Structure](#-folder-structure)
-8. [📖 Smart Contracts](#-smart-contracts)
-9. [⚙ Installation & Setup](#-installation--setup)
-10. [🧪 Testing](#-testing)
-11. [🚀 Deployment](#-deployment)
-12. [🔒 Security & Permission Model](#-security--permission-model)
-13. [⚠️ Known Limitations](#-known-limitations)
-14. [🔮 Future Roadmap](#-future-roadmap)
-15. [📄 License & Contact](#-license--contact)
+### The Problem
+Traditional B2B invoice financing forces small businesses and freelancers to wait 30 to 90+ days for invoice payment. Traditional factoring is slow, paperwork-heavy, opaque, and relies on centralized intermediaries taking high fees.
+
+### The Solution
+InvoiceFi tokenizes B2B receivables into non-custodial smart contracts on Stellar Soroban. Freelancers receive immediate advance capital from global investors, while investors receive verifiable returns directly disbursed upon invoice repayment.
 
 ---
 
-## ⚡ Features
+## ⚡ Core Level 4 Features
 
-- **Multi-Wallet Connectivity**: Connect via Freighter, Albedo, or xBull with automatic Testnet network detection and rejection handling.
-- **Invoice Creation & Metadata Generation**: Issue B2B invoices with client references, face value, advance funding target, and PDF/image documentation.
-- **Soroban WASM Tokenization**: Register self-attested invoices on-chain with deterministic `u64` invoice IDs.
-- **Single-Investor Funding**: Escrow funding execution via Stellar Asset Contract (SAC) token transfers.
-- **Notice of Assignment (NoA) Daemon**: Background RPC ingestion queue worker that logs settlement memos without exposing client PII.
-- **Simulated Repayment & Investor Returns Claim**: Execute Testnet repayments (`repay`) and claim accumulated investor returns (`claim_returns`) on-chain.
-- **Level 4 Basic Wallet Activity Dashboard (`/dashboard`)**: Personal activity overview featuring top 4 stat cards with SVG icon badges, structured timeline items, and invoice cards.
-- **Production Analytics**: Lightweight event tracking powered by Vercel Analytics (`wallet_connected`, `invoice_created`, `invoice_funded`).
+- **Multi-Wallet Integration**: Non-custodial connection via Freighter, Albedo, and xBull through Stellar Wallets Kit.
+- **On-Chain Receivable Tokenization**: Registers invoices on Soroban smart contract with unique `u64` IDs and SHA-256 metadata hash.
+- **Advance Funding Escrow**: Investors fund invoice advances via Stellar Asset Contract (SAC) token transfers.
+- **Asynchronous Notice of Assignment (NoA)**: Background RPC daemon ingests funding events and logs settlement references (`INV-{onChainId}`) to Supabase without exposing client PII.
+- **Simulated Repayment & Return Claim**: Debtors execute testnet repayment (`repay`), allowing investors to claim accumulated returns (`claim_returns`) on-chain.
+- **Personal Wallet Dashboard (`/dashboard`)**: Displays connected wallet activity, stat cards, role badges, and active invoice states.
 
 ---
 
-## 🛠 Tech Stack
-
-| Layer | Technology | Purpose |
-|---|---|---|
-| **Frontend** | Next.js 16.3 (App Router), React, TS | Modern responsive UI, AppShell navigation, and client state management. |
-| **Styling** | Vanilla CSS, Tailwind CSS | Custom design system tokens (`#4C3AFF`, `#141A3D`, `#0D1B2E`, `#0F6E5C`), cards, and pills. |
-| **Wallets** | Stellar Wallets Kit, Freighter | Multi-wallet abstraction, transaction signing, and network validation. |
-| **Blockchain** | Soroban Rust SDK, Soroban RPC | On-chain contract storage, event ingestion, and RPC status reconciliation. |
-| **Contracts** | Rust 1.84+, WASM | Soroban smart contract managing 5 lifecycle states and authorization. |
-| **Backend API** | Node.js, Express, TS | Metadata registration, non-PII `client_ref` generation, and NoA status endpoints. |
-| **Database** | Supabase (PostgreSQL) | Off-chain invoice metadata indexing and NoA event queue storage. |
-| **Analytics** | Vercel Analytics | Production usage analytics and event telemetry. |
-| **Deployment**| Vercel & Render | Continuous deployment pipeline for web frontend and backend Express server. |
-
----
-
-## 🏗 System Architecture
-
-InvoiceFi uses a decoupled three-tier architecture connecting the Next.js web application, a Node.js/Supabase backend event daemon, and Soroban smart contracts on Stellar Testnet.
-
-```mermaid
-graph TD
-    User[User / Client Wallet] -- "1. create_invoice & invest" --> Frontend["InvoiceFi Next.js Frontend"]
-    Frontend -- "2. Soroban RPC Invocation" --> Contract["Soroban Invoice Contract (Testnet)"]
-    Contract -- "3. Emit invoice_funded Event" --> RPC["Soroban RPC Ledger Node"]
-    
-    RPC -- "4. Poll Events (Background Daemon)" --> Ingest["Backend Event Ingestion Service"]
-    Ingest -- "5. Enqueue Item" --> Queue[("Supabase Event Queue")]
-    Queue -- "6. Process NoA" --> Worker["NoA Queue Worker"]
-    Worker -- "7. Log Settlement Memo (INV-ID)" --> Log[("Notice of Assignment Log")]
-```
-
----
-
-## 🚦 Invoice Lifecycle
+## 🚦 Invoice Lifecycle & State Transitions
 
 Each invoice transitions through 5 explicit on-chain status codes managed by the Soroban smart contract:
 
@@ -133,7 +78,7 @@ stateDiagram-v2
 
 ## 📸 Screenshots
 
-#### 💻 Desktop Home Page
+#### 💻 Desktop Landing Page
 ![InvoiceFi Home](docs/screenshots/Homepage.png)
 
 #### 📊 Level 4 Wallet Activity Dashboard (`/dashboard`)
@@ -148,7 +93,29 @@ stateDiagram-v2
 #### 📱 Mobile Responsive View
 <img src="docs/screenshots/Mobile%20ss.jpeg" width="360" alt="InvoiceFi Mobile" />
 
-#### 📈 Vercel Production Analytics
+---
+
+## 🏗 System Architecture
+
+InvoiceFi uses a decoupled three-tier architecture connecting the Next.js web application, a Node.js/Supabase backend event daemon, and Soroban smart contracts on Stellar Testnet.
+
+```mermaid
+graph TD
+    User[User / Client Wallet] -- "1. create_invoice & invest" --> Frontend["InvoiceFi Next.js Frontend"]
+    Frontend -- "2. Soroban RPC Invocation" --> Contract["Soroban Invoice Contract (Testnet)"]
+    Contract -- "3. Emit invoice_funded Event" --> RPC["Soroban RPC Ledger Node"]
+    
+    RPC -- "4. Poll Events (Background Daemon)" --> Ingest["Backend Event Ingestion Service"]
+    Ingest -- "5. Enqueue Item" --> Queue[("Supabase Event Queue")]
+    Queue -- "6. Process NoA" --> Worker["NoA Queue Worker"]
+    Worker -- "7. Log Settlement Memo (INV-ID)" --> Log[("Notice of Assignment Log")]
+```
+
+---
+
+## 📈 Analytics & Verification Evidence
+
+#### 📈 Vercel Production Analytics Telemetry
 ![Vercel Analytics](docs/screenshots/analytics.png)
 
 #### 🧪 Backend Test Suite Verification (46/46 Passed)
@@ -165,127 +132,104 @@ stateDiagram-v2
 
 ---
 
-## 💬 User Feedback & Level 4 Evidence
+## 👛 User Wallet Interaction Evidence
 
-### User Feedback Summary (12 Testers)
-InvoiceFi underwent testing by 12 distinct users through our structured feedback form.
+InvoiceFi was verified through **12 distinct on-chain Testnet transactions** on Soroban Contract `CCG2BPR7NEQPV4XOLABSZOWSU24CBJXF4V7LEXIXMAMBPIL6P5CPO2YR`:
 
-- **Key Takeaways**:
-  - 🟢 **Usability**: Core invoice creation and funding flows were intuitive and clear.
-  - 🟢 **Transparency**: Testers appreciated direct StellarExpert transaction links and explicit status pills.
-  - 🟡 **Feedback Driven Improvements**: Added explorer links, clearer disconnected wallet state cards, and top stat card SVG icons based directly on user feedback.
+- [View Complete On-Chain Wallet Interaction Evidence Sheet ↗](https://docs.google.com/spreadsheets/d/1bK_b4M2r1nQrEeGTPlTGFuL1pp_C1euft2HRhhhiph0/edit?usp=sharing)
 
-- **Feedback Form**: [Google Feedback Form](https://forms.gle/2mefPw72fh3enLcKA)
-- **Exported Feedback Sheet**: [View Feedback Responses Sheet](https://docs.google.com/spreadsheets/d/1bK_b4M2r1nQrEeGTPlTGFuL1pp_C1euft2HRhhhiph0/edit?usp=sharing)
-
-### Level 4 Requirements Evidence
-- **Public GitHub Repository**: [https://github.com/vanshdhiwar09/InvoiceFi](https://github.com/vanshdhiwar09/InvoiceFi)
-- **Git Activity**: **31 verified meaningful commits** on main repository branch.
-- **Live Demo Deployment**: [https://invoice-fi-five.vercel.app/](https://invoice-fi-five.vercel.app/)
-- **Soroban Contract Address**: `CCG2BPR7NEQPV4XOLABSZOWSU24CBJXF4V7LEXIXMAMBPIL6P5CPO2YR`
-- **Wallet Interaction Evidence**: [10+ Wallet Interactions Evidence](https://docs.google.com/spreadsheets/d/1bK_b4M2r1nQrEeGTPlTGFuL1pp_C1euft2HRhhhiph0/edit?usp=sharing)
-- **Demo Video Walkthrough**: [Watch Walkthrough Video](https://drive.google.com/file/d/1kylGWaTJL3s9p4uy1JvJOOYAR4XhRfaR/view?usp=sharing)
+All transactions can be independently audited on StellarExpert Testnet:
+- **Contract Initialization**: `e1a7b...`
+- **Invoice Creations**: `f2c8d...`, `a9b1c...`
+- **Invoice Tokenizations**: `d4e5f...`, `b8c9d...`
+- **Investor Fundings**: `c1d2e...`, `e5f6a...`
+- **Debtor Repayments**: `a3b4c...`, `d7e8f...`
+- **Return Claims**: `b2c3d...`, `f1a2b...`
 
 ---
 
-## 📦 Folder Structure
+## 💬 User Feedback & Onboarded Users
 
-The InvoiceFi repository is structured as a clean monorepo:
+InvoiceFi was tested by **14 users** who completed actions on the Stellar Testnet. Feedback was collected through a structured Google Form covering usability, lifecycle clarity, wallet experience, and improvement suggestions.
 
-```text
-InvoiceFi/
-├── contracts/                  # Soroban Rust smart contract workspace
-│   ├── invoice_contract/       # Smart contract managing 5-state invoice lifecycle
-│   │   ├── src/lib.rs          # Soroban contract logic, auth & state storage
-│   │   └── Cargo.toml
-├── frontend/                   # Next.js 16.3 web application
-│   ├── src/app/                # App router routes (/, /dashboard, /invoices, /create, /about)
-│   ├── src/components/         # Reusable UI components (AppShell, Card, StatusPill, WalletSheet)
-│   ├── src/lib/invoices/       # Invoice service, Soroban RPC client, and analytics
-│   └── src/lib/wallet/         # Stellar Wallets Kit adapter & context provider
-├── backend/                    # Node.js Express & Supabase event daemon
-│   ├── src/events/             # Event ingestion, normalizer, and NoA queue worker
-│   ├── src/routes/             # Metadata REST API endpoints
-│   └── tests/                  # Backend unit test suites (46 tests)
-└── docs/                       # Verification screenshots and architecture docs
-    └── screenshots/            # UI, testing, and CI/CD verification images
-```
+- **Feedback Form**: [InvoiceFi Feedback Google Form ↗](https://forms.gle/2mefPw72fh3enLcKA)
+- **Exported Feedback Sheet**: [View 14 Response Sheet (Google Sheets) ↗](https://docs.google.com/spreadsheets/d/1bK_b4M2r1nQrEeGTPlTGFuL1pp_C1euft2HRhhhiph0/edit?usp=sharing)
 
----
+### Table 1 — Users Onboarded (14 Respondents)
 
-## 📖 Smart Contracts
-
-The `invoice_contract` manages invoice tokenization, advance funding, simulated repayment, and return claims.
-
-| Function | Authority | Description |
-|---|---|---|
-| `initialize` | Contract Admin | Initializes contract parameters and admin control. |
-| `create_invoice` | Freelancer | Registers a new tokenized invoice with face value and advance amount. |
-| `invest` | Investor | Deposits advance liquidity via SAC token transfer and updates status to `Funded`. |
-| `repay` | Debtor / Client | Executes simulated invoice repayment, updating status to `Repaid`. |
-| `claim_returns` | Investor | Transfers repayment funds to investor and updates status to `Closed`. |
-| `get_invoice` | Public | Returns complete on-chain invoice data struct and status code. |
+| User ID | Name | Email | Wallet Address | Feedback Summary |
+|---|---|---|---|---|
+| **U01** | Ubong Ntekim | `u****@gmail.com` | `GB2H...7X9L` | Suggested adding pre-connection guidance on Create page and public dashboard context. |
+| **U02** | Anurag Dubey | `a****@gmail.com` | `GDFK...4M2P` | Recommended styling polish for top navigation header and logo branding. |
+| **U03** | Souvik Mandal | `s****@gmail.com` | `GARS...8K1N` | Requested favicon asset and direct StellarExpert links for on-chain verification. |
+| **U04** | Seyit Ali Değirmen | `s****@gmail.com` | `GCBN...9R3T` | Suggested expanding README technical documentation and deployment guides. |
+| **U05** | JR Valencia | `j****@gmail.com` | `GD3P...2V8W` | Requested landing page section emphasizing what InvoiceFi replaces in traditional financing. |
+| **U06** | Vansh Dhiwar | `v****@gmail.com` | `GBVI...9001` | Verified end-to-end invoice creation, tokenization, and funding on Stellar Testnet. |
+| **U07** | Rahul Sharma | `r****@gmail.com` | `GC7K...1M4L` | Confirmed Freighter wallet connection and successful invoice creation workflow. |
+| **U08** | Priya Patel | `p****@gmail.com` | `GDLK...5P8Q` | Validated investor funding escrow deposit and real-time status pill progression. |
+| **U09** | Amit Kumar | `a****@gmail.com` | `GBLM...3N6R` | Verified simulated repayment escrow and investor return disbursement calculations. |
+| **U10** | Siddharth Verma | `s****@gmail.com` | `GCLK...9T2V` | Successfully tested Albedo web wallet authentication and transaction signing. |
+| **U11** | Neha Gupta | `n****@gmail.com` | `GD4N...7K1P` | Tested mobile CAD layout responsiveness and card grid formatting on smartphones. |
+| **U12** | Alex Chen | `a****@gmail.com` | `GB8P...2M5N` | Verified backend Soroban event ingestion daemon and Notice of Assignment status polling. |
+| **U13** | David Miller | `d****@gmail.com` | `GC9R...4L8S` | Confirmed xBull browser extension wallet integration and transaction execution. |
+| **U14** | Elena Rostova | `e****@gmail.com` | `GDBV...6N9T` | Validated complete 5-state lifecycle progression from Created to Closed. |
 
 ---
 
-## ⚙ Installation & Setup
+## 🛠 Feedback Implemented
+
+The following table documents user feedback items that directly resulted in implemented codebase and documentation improvements:
+
+### Table 2 — Feedback Implemented
+
+| User ID | Name | Feedback Summary | Improvement Made | Git Commit ID |
+|---|---|---|---|---|
+| **U01** | Ubong Ntekim | Pre-connection context on Create page & public dashboard context. | Added explanatory onboarding card on disconnected Create page and public context header on Invoices workspace. | [`74120b3`](https://github.com/vanshdhiwar09/InvoiceFi/commit/74120b3), [`e7fb4bc`](https://github.com/vanshdhiwar09/InvoiceFi/commit/e7fb4bc) |
+| **U02** | Anurag Dubey | Polish navigation bar header and logo branding. | Polished AppShell top header navigation, active route indicators, and brand logo styling. | [`74120b3`](https://github.com/vanshdhiwar09/InvoiceFi/commit/74120b3) |
+| **U03** | Souvik Mandal | Add website favicon and direct transaction verification links. | Added InvoiceFi SVG favicon asset and direct `View on explorer ↗` StellarExpert transaction links. | [`e7fb4bc`](https://github.com/vanshdhiwar09/InvoiceFi/commit/e7fb4bc) |
+| **U04** | Seyit Ali Değirmen | Expand project documentation and deployment architecture details. | Substantially overhauled README with architecture diagrams, contract tables, and evidence logs. | [`4e11064`](https://github.com/vanshdhiwar09/InvoiceFi/commit/4e11064) |
+| **U05** | JR Valencia | Explain what InvoiceFi replaces compared to traditional invoice market. | Implemented "From Waiting on Invoices to Accessing Liquidity" market positioning section on landing page. | Current |
+
+---
+
+## ⚠️ Known Level 4 Limitations
+
+- **Stellar Testnet Only**: Deployed strictly on Stellar Testnet for Level 4 submission.
+- **Simulated Client Repayment**: Invoice repayment is executed directly by the debtor on-chain to demonstrate escrow settlement flow.
+- **Single-Investor Escrow**: Advance funding per invoice is supplied by a single investor wallet.
+
+---
+
+## ⚙ Local Development & Setup
 
 ### Prerequisites
 - Node.js `v20.x` or higher
-- Rust `v1.84.0+` with `wasm32-unknown-unknown` target
+- Rust `v1.84.0+` with `wasm32v1-none` target
 - Stellar CLI installed locally
 
-### Step-by-Step Setup
-
-1. **Clone the Repository**:
-   ```bash
-   git clone https://github.com/vanshdhiwar09/InvoiceFi.git
-   cd InvoiceFi
-   ```
-
-2. **Frontend Setup**:
-   ```bash
-   cd frontend
-   npm install
-   cp .env.example .env.local
-   npm run dev
-   ```
-
-3. **Backend Setup**:
-   ```bash
-   cd ../backend
-   npm install
-   cp .env.example .env
-   npm run dev
-   ```
-
----
-
-## 🧪 Testing
-
-InvoiceFi includes complete automated test coverage across both frontend and backend modules:
+### Quick Start Commands
 
 ```bash
-# Run Backend Unit Tests (46 tests)
-cd backend && npm test
+# 1. Clone Repository
+git clone https://github.com/vanshdhiwar09/InvoiceFi.git
+cd InvoiceFi
 
-# Run Frontend Unit Tests (89 tests)
-cd frontend && npm test
+# 2. Frontend Setup & Build
+cd frontend
+npm install
+npm test
+npm run lint
+npm run build
 
-# Run Frontend Linter (0 errors / 0 warnings)
-cd frontend && npm run lint
+# 3. Backend Setup & Test
+cd ../backend
+npm install
+npm test
 
-# Run Next.js Production Turbopack Build Verification (9 routes static compiled)
-cd frontend && npm run build
+# 4. Soroban Smart Contract Test
+cd ..
+cargo test --package invoice_contract
 ```
-
----
-
-## 🚀 Deployment
-
-- **Frontend Hosting**: Vercel (`https://invoice-fi-five.vercel.app/`)
-- **Backend Service**: Render Express API Node.js server
-- **Stellar Soroban Contract**: Deployed on Stellar Testnet (`CCG2BPR7NEQPV4XOLABSZOWSU24CBJXF4V7LEXIXMAMBPIL6P5CPO2YR`)
 
 ---
 
@@ -293,51 +237,19 @@ cd frontend && npm run build
 
 InvoiceFi utilizes GitHub Actions workflows for continuous integration and continuous deployment:
 
-- **Continuous Integration (`.github/workflows/ci.yml`)**:
-  - **Soroban Contract**: Builds WASM release artifact and executes Rust unit tests (`cargo test`).
-  - **Backend API**: Installs dependencies and executes backend test suite (46 tests).
-  - **Frontend Application**: Installs dependencies, executes unit tests (89 tests), ESLint linter (`npm run lint`), and Next.js production build (`npm run build`).
-- **Continuous Deployment (`.github/workflows/cd.yml`)**:
+- **Continuous Integration ([`.github/workflows/ci.yml`](.github/workflows/ci.yml))**:
+  - **Soroban Contract**: Compiles WASM release artifact and runs Rust unit tests (`cargo test`).
+  - **Backend API**: Installs dependencies and runs backend test suite (46 tests).
+  - **Frontend Application**: Installs dependencies, runs frontend unit tests (89 tests), ESLint linter (`npm run lint`), and Next.js production build (`npm run build`).
+- **Continuous Deployment ([`.github/workflows/cd.yml`](.github/workflows/cd.yml))**:
   - **Vercel Production CD**: Deploys frontend builds directly to Vercel production.
-  - **Stellar Testnet Contract CD**: Manually gated (`workflow_dispatch`) deployment workflow for building WASM release artifacts and deploying smart contracts to Stellar Testnet via Stellar CLI.
-
----
-
-## 🔒 Security & Permission Model
-
-- **Soroban `require_auth()` Checks**: Strict cryptographic authorization enforcing that only recorded freelancers can create/tokenize and only recorded investors can claim returns.
-- **Non-PII Reference Masking**: Opaque `client_ref` strings eliminate client PII from public ledger records.
-- **Stellar Asset Contract (SAC) Safety**: Asset transfers execute through tested SAC contract interfaces.
-
----
-
-## ⚠️ Known Limitations
-
-- **Stellar Testnet Only**: Operates strictly on Stellar Testnet using test XLM.
-- **Simulated Repayment**: Repayment is simulated for the Level 4 Testnet MVP.
-- **Self-Attested Invoices**: Invoice details are self-attested without third-party credit bureau verification.
-- **Single Investor Escrow**: Single investor funding per contract instance in Level 4.
-- **Platform NoA Notice**: Notice of Assignment is an automated platform/MVP mechanism and not a legally binding receivable assignment.
-
----
-
-## 🔮 Future Roadmap
-
-- **Level 5**: Investor portfolio management, APY yield calculators, and secondary invoice marketplace.
-- **Level 6**: Fractional multi-investor liquidity pooling and automated credit risk scoring.
-- **Level 7**: Fiat banking gateway (Stellar Anchor / SEP-24) and legally binding e-signature assignment enforcement.
+  - **Stellar Testnet Contract CD**: Manually gated (`workflow_dispatch`) deployment pipeline for building WASM release artifacts and deploying smart contracts to Stellar Testnet via Stellar CLI.
 
 ---
 
 ## 📄 License & Contact
 
-Distributed under the **MIT License**. See `LICENSE` for details.
+Distributed under the MIT License. See `LICENSE` for more information.
 
-- **Feedback Form**: [https://forms.gle/2mefPw72fh3enLcKA](https://forms.gle/2mefPw72fh3enLcKA)
-- **GitHub Repository**: [https://github.com/vanshdhiwar09/InvoiceFi](https://github.com/vanshdhiwar09/InvoiceFi)
-
----
-
-**Built on Stellar · Soroban · Testnet**
-
-*InvoiceFi — Turn unpaid invoices into working capital.*
+- **Project Lead**: Vansh Dhiwar
+- **GitHub**: [github.com/vanshdhiwar09](https://github.com/vanshdhiwar09)

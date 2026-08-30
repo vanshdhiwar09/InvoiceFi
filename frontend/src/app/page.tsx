@@ -282,6 +282,78 @@ export default function HomePage() {
       </section>
 
       {/* ---------------------------------------------------- */}
+      {/* SECTION 1.5: MARKET POSITIONING (TRADITIONAL VS INVOICEFI) */}
+      {/* ---------------------------------------------------- */}
+      <section className="py-10 sm:py-14 border-t border-[#E2E7EE] space-y-8 sm:space-y-10">
+        <div className="text-center max-w-2xl mx-auto space-y-3">
+          <h2 className="text-2xl sm:text-4xl font-light text-[#0D1B2E] tracking-tight">
+            From Waiting on Invoices to Accessing Liquidity
+          </h2>
+          <p className="text-xs sm:text-base text-[#647087] leading-relaxed">
+            How InvoiceFi improves traditional invoice financing with Stellar Soroban smart contract infrastructure.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-5xl mx-auto">
+          {/* Traditional Invoice Financing */}
+          <div className="bg-gradient-to-br from-[#FFF5F5] via-white to-[#FAFAFA] p-6 sm:p-8 rounded-3xl border border-[#FCA5A5]/40 shadow-sm space-y-4">
+            <div className="flex items-center gap-3">
+              <span className="w-8 h-8 rounded-xl bg-[#FEE2E2] text-[#DC2626] font-mono font-bold text-xs flex items-center justify-center">
+                ✕
+              </span>
+              <h3 className="text-lg sm:text-xl font-semibold text-[#0D1B2E]">Traditional Invoice Financing</h3>
+            </div>
+            <ul className="space-y-3 text-xs sm:text-sm text-[#647087]">
+              <li className="flex items-start gap-2.5">
+                <span className="text-[#EF4444] font-bold mt-0.5">•</span>
+                <span><strong>Long Waiting Periods:</strong> 30 to 90+ day delay before receiving client payments.</span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <span className="text-[#EF4444] font-bold mt-0.5">•</span>
+                <span><strong>Manual Coordination:</strong> Paperwork, manual bank verification, and slow paper processing.</span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <span className="text-[#EF4444] font-bold mt-0.5">•</span>
+                <span><strong>Opaque Visibility:</strong> Opaque settlement status without real-time tracking for investors.</span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <span className="text-[#EF4444] font-bold mt-0.5">•</span>
+                <span><strong>Centralized Intermediaries:</strong> High factor fees and centralized counterparty risk.</span>
+              </li>
+            </ul>
+          </div>
+
+          {/* InvoiceFi Protocol */}
+          <div className="bg-gradient-to-br from-[#F0FDF4] via-white to-[#FAFAFA] p-6 sm:p-8 rounded-3xl border border-[#86EFAC]/40 shadow-sm space-y-4">
+            <div className="flex items-center gap-3">
+              <span className="w-8 h-8 rounded-xl bg-[#DCFCE7] text-[#16A34A] font-mono font-bold text-xs flex items-center justify-center">
+                ✓
+              </span>
+              <h3 className="text-lg sm:text-xl font-semibold text-[#0D1B2E]">InvoiceFi Protocol</h3>
+            </div>
+            <ul className="space-y-3 text-xs sm:text-sm text-[#647087]">
+              <li className="flex items-start gap-2.5">
+                <span className="text-[#16A34A] font-bold mt-0.5">•</span>
+                <span><strong>Tokenize Receivables:</strong> Instant on-chain asset creation with SHA-256 metadata integrity.</span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <span className="text-[#16A34A] font-bold mt-0.5">•</span>
+                <span><strong>Direct Peer-to-Peer:</strong> Connects freelancers with investors directly via non-custodial wallets.</span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <span className="text-[#16A34A] font-bold mt-0.5">•</span>
+                <span><strong>On-Chain Tracking:</strong> Transparent lifecycle tracking from Created → Tokenized → Funded → Repaid → Closed.</span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <span className="text-[#16A34A] font-bold mt-0.5">•</span>
+                <span><strong>Transparent Settlement:</strong> Soroban smart contract execution with verifiable Stellar Expert links.</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------------------------------------------------- */}
       {/* SECTION 2: BUILT ON STELLAR & SOROBAN               */}
       {/* ---------------------------------------------------- */}
       <section className="py-10 sm:py-14 border-t border-[#E2E7EE] space-y-8 sm:space-y-10">
