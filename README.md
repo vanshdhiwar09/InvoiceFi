@@ -27,7 +27,7 @@ InvoiceFi is a decentralized invoice financing protocol built on Stellar and Sor
 | 🎥 **Demo Video Walkthrough** | [Watch Demo Walkthrough (Google Drive) ↗](https://drive.google.com/file/d/1kylGWaTJL3s9p4uy1JvJOOYAR4XhRfaR/view?usp=sharing) |
 | 📊 **Vercel Production Analytics** | [View Production Telemetry Below](#-analytics--verification-evidence) |
 | 👛 **10+ Wallet Interaction Log** | [View On-Chain Wallet Interaction Evidence ↗](https://docs.google.com/spreadsheets/d/1bK_b4M2r1nQrEeGTPlTGFuL1pp_C1euft2HRhhhiph0/edit?usp=sharing) |
-| 💬 **User Feedback Responses** | [View Exported Google Form Responses Sheet ↗](https://docs.google.com/spreadsheets/d/1bK_b4M2r1nQrEeGTPlTGFuL1pp_C1euft2HRhhhiph0/edit?usp=sharing) |
+| 💬 **User Feedback Form & Data** | [Open Feedback Form ↗](https://forms.gle/2mefPw72fh3enLcKA) \| [View Response Sheet ↗](https://docs.google.com/spreadsheets/d/1bK_b4M2r1nQrEeGTPlTGFuL1pp_C1euft2HRhhhiph0/edit?usp=sharing) |
 | 📱 **Mobile Responsive UI** | Tested down to 320px mobile viewports ([See Screenshots Below](#-screenshots)) |
 | 🔄 **Automated CI/CD Workflows** | [CI Pipeline (`ci.yml`)](https://github.com/vanshdhiwar09/InvoiceFi/actions/workflows/ci.yml) & [CD Pipeline (`cd.yml`)](https://github.com/vanshdhiwar09/InvoiceFi/actions/workflows/cd.yml) |
 
